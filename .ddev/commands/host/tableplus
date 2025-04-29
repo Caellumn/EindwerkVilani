@@ -1,0 +1,6 @@
+DB_HOST="127.0.0.1"
+DB_PORT="54412"
+DB_USER="db"
+DB_PASS="db"
+DB_NAME="db"
+start "tableplus://?host=$DB_HOST&port=$DB_PORT&username=$DB_USER&password=$DB_PASS&database=$DB_NAME"
