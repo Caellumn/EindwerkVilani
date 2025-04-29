@@ -6,6 +6,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+
+// controller products --> get products.php
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
