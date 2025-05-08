@@ -8,7 +8,7 @@ use OpenApi\Annotations as OA;
 
 class ServiceApiController extends Controller
 {
-    /**
+   /**
      * Display a listing of the resource.
      * 
      * @OA\Get(
@@ -21,8 +21,8 @@ class ServiceApiController extends Controller
      *         description="Successful operation",
      *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Service"))
      *     )
-     * )
-     */
+      * )
+      */
     public function index()
     {
         // get all services
@@ -32,13 +32,13 @@ class ServiceApiController extends Controller
     /**
      * Store a newly created resource in storage.
      * 
-     * @OA\Post(
-     *     path="/services",
+      * @OA\Post(
+      *     path="/services", 
      *     tags={"Services"},
-     *     summary="Create a new service",
+      *     summary="Create a new service",
      *     description="Creates a new service and returns the service details",
-     *     @OA\RequestBody(
-     *         required=true,
+      *     @OA\RequestBody(
+      *         required=true,
      *         description="Required fields: name, description, duration_phase_1. Optional fields: rest_duration, duration_phase_2",
      *         @OA\JsonContent(
      *             required={"name", "description", "duration_phase_1"},
@@ -57,16 +57,16 @@ class ServiceApiController extends Controller
      *     @OA\Response(
      *         response=400,
      *         description="Service already exists",
-     *         @OA\JsonContent(
+      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Service already exists")
-     *         )
-     *     ),
+      *         )
+      *     ),
      *     @OA\Response(
      *         response=422,
      *         description="Validation error"
      *     )
-     * )
-     */
+      * )
+      */
     public function store(Request $request)
     {
         //create a new service

@@ -13,4 +13,9 @@ class Service extends Model
         'rest_duration',
         'duration_phase_2',
     ];
+
+    public function serviceWithHairlengths()
+    {
+        return $this->hasMany(ServiceWithHairlength::class);
+    }
 }
