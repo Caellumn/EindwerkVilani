@@ -1,10 +1,10 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Product API",
-        "description": "API for managing products",
+        "title": "Kapsalon Vilani API",
+        "description": "API for managing a hair salon's services, products, and appointments",
         "contact": {
-            "email": "info@example.com"
+            "email": "info@kapsalonvilani.com"
         },
         "version": "1.0.0"
     },
@@ -47,28 +47,41 @@
                 "description": "Creates a new product and returns the product details",
                 "operationId": "399770d33fa4672f1216707d0e236763",
                 "requestBody": {
+                    "description": "Required fields: name, description, price, stock. Optional field: image",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "description",
+                                    "price",
+                                    "stock"
+                                ],
                                 "properties": {
                                     "name": {
+                                        "description": "Required. Name of the product",
                                         "type": "string",
                                         "example": "Shampoo"
                                     },
                                     "description": {
+                                        "description": "Required. Description of the product",
                                         "type": "string",
                                         "example": "Something to wash your hair"
                                     },
                                     "price": {
+                                        "description": "Required. Price of the product",
                                         "type": "number",
+                                        "format": "float",
                                         "example": 9.99
                                     },
                                     "stock": {
+                                        "description": "Required. Number of items in stock",
                                         "type": "integer",
                                         "example": 50
                                     },
                                     "image": {
+                                        "description": "Optional. Image filename for the product",
                                         "type": "string",
                                         "example": "shampoo.jpg"
                                     }
@@ -79,7 +92,7 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Product created successfully",
                         "content": {
                             "application/json": {
@@ -89,21 +102,8 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Product already exists",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Product already exists"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "422": {
+                        "description": "Validation error"
                     }
                 }
             }
@@ -249,6 +249,888 @@
                     }
                 }
             }
+        },
+        "/services": {
+            "get": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Get all services",
+                "description": "Returns list of all services",
+                "operationId": "1668f1b477351590ed9483fa8dbb1c0e",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Service"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Create a new service",
+                "description": "Creates a new service and returns the service details",
+                "operationId": "025f26719e7eb513dc977be8039edd5e",
+                "requestBody": {
+                    "description": "Required fields: name, description, duration_phase_1. Optional fields: rest_duration, duration_phase_2",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "description",
+                                    "duration_phase_1"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Required. Name of the service",
+                                        "type": "string",
+                                        "example": "Haircut"
+                                    },
+                                    "description": {
+                                        "description": "Required. Description of the service",
+                                        "type": "string",
+                                        "example": "Basic haircut service"
+                                    },
+                                    "duration_phase_1": {
+                                        "description": "Required. Duration of phase 1 in minutes",
+                                        "type": "integer",
+                                        "example": 30
+                                    },
+                                    "rest_duration": {
+                                        "description": "Optional. Rest duration in minutes",
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "duration_phase_2": {
+                                        "description": "Optional. Duration of phase 2 in minutes",
+                                        "type": "integer",
+                                        "example": 0
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Service created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Service"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Service already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service already exists"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/services/{id}": {
+            "get": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Get service by ID",
+                "description": "Returns a single service",
+                "operationId": "8379ca180448f06f172e894ed2ea5c87",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of service to return",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Service"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Update an existing service",
+                "description": "Updates a service and returns the updated service details",
+                "operationId": "0327b8719d91bf3647f2adb643bc349d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of service to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Updated Haircut"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Updated haircut service"
+                                    },
+                                    "duration_phase_1": {
+                                        "type": "integer",
+                                        "example": 45
+                                    },
+                                    "rest_duration": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "duration_phase_2": {
+                                        "type": "integer",
+                                        "example": 15
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Service updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Service"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Delete a service",
+                "description": "Deletes a service",
+                "operationId": "2aea7a971d60fde5e42729153bbeae75",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of service to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service deleted successfully"
+                                        },
+                                        "object": {
+                                            "$ref": "#/components/schemas/Service"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/serviceswithhairlengths": {
+            "get": {
+                "tags": [
+                    "Services with Hairlength"
+                ],
+                "summary": "Get all services with their hairlengths",
+                "description": "Returns list of all services with their corresponding hairlengths and prices",
+                "operationId": "2aaac5e50c8faabfe39d5d09c527bb07",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "service_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "hairlength_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "price": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 25
+                                            },
+                                            "service": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Haircut"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Basic haircut service"
+                                                    },
+                                                    "duration_phase_1": {
+                                                        "type": "integer",
+                                                        "example": 30
+                                                    },
+                                                    "rest_duration": {
+                                                        "type": "integer",
+                                                        "example": 0
+                                                    },
+                                                    "duration_phase_2": {
+                                                        "type": "integer",
+                                                        "example": 0
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "hairlength": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "length": {
+                                                        "type": "string",
+                                                        "example": "Short"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Services with Hairlength"
+                ],
+                "summary": "Create a new service-hairlength combination",
+                "description": "Creates a new service-hairlength combination and returns the details",
+                "operationId": "e92cb219230aaca852c35d27ea01a3d1",
+                "requestBody": {
+                    "description": "Required fields: service_id, hairlength_id, price",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "service_id",
+                                    "hairlength_id",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "service_id": {
+                                        "description": "Required. ID of the service",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "hairlength_id": {
+                                        "description": "Required. ID of the hairlength",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "price": {
+                                        "description": "Required. Price for this service-hairlength combination",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Service-hairlength combination created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceWithHairlength"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Service-hairlength combination already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "This service-hairlength combination already exists"
+                                        },
+                                        "object": {
+                                            "$ref": "#/components/schemas/ServiceWithHairlength"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/serviceswithhairlengths/{id}": {
+            "get": {
+                "tags": [
+                    "Services with Hairlength"
+                ],
+                "summary": "Get a specific service-hairlength combination",
+                "description": "Returns a single service-hairlength combination with service and hairlength details",
+                "operationId": "d10d222a36ffa9b8e1184a39059769f1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the service-hairlength combination",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceWithHairlength"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service-hairlength combination not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service-hairlength combination not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Services with Hairlength"
+                ],
+                "summary": "Update a service-hairlength combination",
+                "description": "Updates an existing service-hairlength combination with the specified price",
+                "operationId": "updateServiceWithHairlength",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the service-hairlength combination",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "service_id",
+                                    "hairlength_id",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "service_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "hairlength_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 25
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Service-hairlength combination updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "service_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "hairlength_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 25
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "service": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Haircut"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Basic haircut service"
+                                                },
+                                                "duration_phase_1": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                },
+                                                "rest_duration": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "duration_phase_2": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "hairlength": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "length": {
+                                                    "type": "string",
+                                                    "example": "Short"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service-hairlength combination not found"
+                    },
+                    "409": {
+                        "description": "Service-hairlength combination already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "This service-hairlength combination already exists"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "service_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The service id field is required."
+                                                    }
+                                                },
+                                                "hairlength_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The hairlength id field is required."
+                                                    }
+                                                },
+                                                "price": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The price field is required."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Services with Hairlength"
+                ],
+                "summary": "Delete a service-hairlength combination",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "19c47b58317ac36b181b760e048ea31a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the service-hairlength combination",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Service-hairlength combination deleted successfully"
+                    },
+                    "404": {
+                        "description": "Service-hairlength combination not found"
+                    }
+                }
+            }
+        },
+        "/hairlengths": {
+            "get": {
+                "tags": [
+                    "Hairlengths"
+                ],
+                "summary": "Get all hairlengths",
+                "description": "Returns list of all hairlengths",
+                "operationId": "a420d17256089d8525016b4cad4f6c33",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Hairlength"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Hairlengths"
+                ],
+                "summary": "Create a new hairlength",
+                "description": "Creates a new hairlength and returns the hairlength details",
+                "operationId": "4e082a51b60d4c07aa4cabfb3ddc5f84",
+                "requestBody": {
+                    "description": "Required field: length",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "length"
+                                ],
+                                "properties": {
+                                    "length": {
+                                        "description": "Required. Length of the hair (e.g., Short, Medium, Long)",
+                                        "type": "string",
+                                        "example": "Short"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Hairlength created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hairlength"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/hairlengths/{id}": {
+            "get": {
+                "tags": [
+                    "Hairlengths"
+                ],
+                "summary": "Get hairlength by ID",
+                "description": "Returns a single hairlength",
+                "operationId": "6ac1625555ebe81e0f4de7c5e53ad6a6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of hairlength to return",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hairlength"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Hairlength not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Hairlengths"
+                ],
+                "summary": "Update an existing hairlength",
+                "description": "Updates a hairlength and returns the updated hairlength details",
+                "operationId": "8b2b83e779bd125ba8f07fff3bc33743",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of hairlength to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "length": {
+                                        "type": "string",
+                                        "example": "Medium"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hairlength updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hairlength"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Hairlength not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Hairlengths"
+                ],
+                "summary": "Delete a hairlength",
+                "description": "Deletes a hairlength",
+                "operationId": "79f9ba675d0661213e39a49a484a94f2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of hairlength to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Hairlength deleted successfully"
+                    },
+                    "404": {
+                        "description": "Hairlength not found"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -291,6 +1173,103 @@
                     }
                 },
                 "type": "object"
+            },
+            "Service": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Haircut"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Basic haircut service"
+                    },
+                    "duration_phase_1": {
+                        "type": "integer",
+                        "example": 30
+                    },
+                    "rest_duration": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "duration_phase_2": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Hairlength": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "length": {
+                        "type": "string",
+                        "example": "Short"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ServiceWithHairlength": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1
+                    },
+                    "service_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "hairlength_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 25
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "service": {
+                        "$ref": "#/components/schemas/Service"
+                    },
+                    "hairlength": {
+                        "$ref": "#/components/schemas/Hairlength"
+                    }
+                },
+                "type": "object"
             }
         }
     },
@@ -298,6 +1277,18 @@
         {
             "name": "Products",
             "description": "Product management endpoints"
+        },
+        {
+            "name": "Services",
+            "description": "Service management endpoints"
+        },
+        {
+            "name": "Hairlengths",
+            "description": "Hairlength management endpoints"
+        },
+        {
+            "name": "Services with Hairlength",
+            "description": "Service-hairlength combination management endpoints"
         }
     ]
 }

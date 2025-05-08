@@ -18,4 +18,4 @@ Route::get('/user', function (Request $request) {
 //betere manier
 Route::apiResource('/products', App\Http\Controllers\ProductController::class)->only(['index', 'show', 'store', 'destroy','update']);
 Route::apiResource('/services', App\Http\Controllers\ServiceApiController::class)->only(['index', 'show', 'store', 'destroy','update']);
-
+Route::apiResource('/serviceswithhairlengths', App\Http\Controllers\ServiceWithHairlengthApiController::class)->only(['index', 'show', 'store', 'destroy','update']);

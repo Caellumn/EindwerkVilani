@@ -39,25 +39,24 @@ class ProductController extends Controller
      *     description="Creates a new product and returns the product details",
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Required fields: name, description, price, stock. Optional field: image",
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Shampoo"),
-     *             @OA\Property(property="description", type="string", example="Something to wash your hair"),
-     *             @OA\Property(property="price", type="number", example=9.99),
-     *             @OA\Property(property="stock", type="integer", example=50),
-     *             @OA\Property(property="image", type="string", example="shampoo.jpg")
+     *             required={"name", "description", "price", "stock"},
+     *             @OA\Property(property="name", type="string", example="Shampoo", description="Required. Name of the product"),
+     *             @OA\Property(property="description", type="string", example="Something to wash your hair", description="Required. Description of the product"),
+     *             @OA\Property(property="price", type="number", format="float", example=9.99, description="Required. Price of the product"),
+     *             @OA\Property(property="stock", type="integer", example=50, description="Required. Number of items in stock"),
+     *             @OA\Property(property="image", type="string", example="shampoo.jpg", description="Optional. Image filename for the product")
      *         )
      *     ),
      *     @OA\Response(
-     *         response=200,
+     *         response=201,
      *         description="Product created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Product")
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Product already exists",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Product already exists")
-     *         )
+     *         response=422,
+     *         description="Validation error"
      *     )
      * )
      */
