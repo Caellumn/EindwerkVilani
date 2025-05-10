@@ -87,6 +87,52 @@ class ServiceResource extends Resource
                     ->label('Filter by Hair Length')
                     ->multiple()
                     ->preload(),
+                Tables\Filters\Filter::make('price_range')
+                    ->form([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('min_price')
+                                    ->label('Min (€)')
+                                    ->numeric()
+                                    ->placeholder('Min')
+                                    ->prefix('€'),
+                                Forms\Components\TextInput::make('max_price')
+                                    ->label('Max (€)')
+                                    ->numeric()
+                                    ->placeholder('Max')
+                                    ->prefix('€'),
+                            ]),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['min_price'],
+                                fn (Builder $query, $minPrice): Builder => $query->whereHas(
+                                    'serviceWithHairlengths',
+                                    fn (Builder $query) => $query->where('price', '>=', $minPrice)
+                                )
+                            )
+                            ->when(
+                                $data['max_price'],
+                                fn (Builder $query, $maxPrice): Builder => $query->whereHas(
+                                    'serviceWithHairlengths',
+                                    fn (Builder $query) => $query->where('price', '<=', $maxPrice)
+                                )
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['min_price'] ?? null) {
+                            $indicators['min_price'] = 'Min Price: €' . $data['min_price'];
+                        }
+
+                        if ($data['max_price'] ?? null) {
+                            $indicators['max_price'] = 'Max Price: €' . $data['max_price'];
+                        }
+
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
