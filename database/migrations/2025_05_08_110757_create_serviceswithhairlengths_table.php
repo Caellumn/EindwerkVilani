@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('service_id')->constrained(
                 table: 'services',
                 indexName: 'serviceswithhairlengths_service_id_foreign'
-            );
+            )->onDelete('cascade');
             $table->foreignId('hairlength_id')->constrained(
                 table: 'hairlengths',
                 indexName: 'serviceswithhairlengths_hairlength_id_foreign'
