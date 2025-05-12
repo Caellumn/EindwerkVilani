@@ -25,8 +25,8 @@ class ServiceApiController extends Controller
       */
     public function index()
     {
-        // get all services
-        return Service::all();
+        // get all services where active is 1
+        return Service::where('active', 1)->get();
     }
 
     /**
@@ -72,24 +72,30 @@ class ServiceApiController extends Controller
         //create a new service
         $name = $request->name;
         $description = $request->description;
-        $duration_phase_1 = $request->duration_phase_1;
-        $rest_duration = $request->rest_duration ?? 0;
-        $duration_phase_2 = $request->duration_phase_2 ?? 0;
+        $hairlength = $request->hairlength;
+        $price = $request->price;
         
-     //check if the product name is already in the database
-     $service = Service::where('name', $name)->first();
-     if ($service) {                                                     /*error code*/  
-        return response()->json(['message' => 'Service already exists'], 400);
-     }
-     $service = Service::create([
-        'name' => $name,
-        'description' => $description,
-        'duration_phase_1' => $duration_phase_1,
-        //rest duruation and phase 2 are optional
-        'rest_duration' => $rest_duration,
-        'duration_phase_2' => $duration_phase_2,
-     ]);
-     return $service;
+        //check if the product name is already in the database
+        $service = Service::where('name', $name)->first();
+        if ($service) {                                                     /*error code*/  
+            return response()->json(['message' => 'Service already exists'], 400);
+        }
+        $service = Service::create([
+            'name' => $name,
+            'description' => $description,
+            'hairlength' => $hairlength,
+            'price' => $price,
+        ]);
+
+        // Attach categories if provided
+        if ($request->has('categories')) {
+            $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
+                return [$categoryId => ['active' => 1]];
+            });
+            $service->categories()->attach($categories);
+        }
+
+        return $service;
     }
 
     /**
@@ -168,6 +174,15 @@ class ServiceApiController extends Controller
     {
         //update a service
         $service->update($request->all());
+
+        // Update categories if provided
+        if ($request->has('categories')) {
+            $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
+                return [$categoryId => ['active' => 1]];
+            });
+            $service->categories()->sync($categories);
+        }
+
         return $service;
     }
 
@@ -178,7 +193,7 @@ class ServiceApiController extends Controller
      *     path="/services/{id}",
      *     tags={"Services"},
      *     summary="Delete a service",
-     *     description="Deletes a service",
+     *     description="Deletes a service by changing active to 0",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -207,11 +222,13 @@ class ServiceApiController extends Controller
     {
         //delete a service
         //return a message that the service has been deleted
+        //use a soft delete by changing active to 0
         $name = $service->name;  // Access the name property of the service object
         if(!$service){
             return response()->json(['message' => 'Service not found'], 404);
         }
-        $service->delete();
+        $service->active = 0;
+        $service->save();
         return response()->json([
             'message' => 'Service "' . $name . '" deleted successfully',
             'object' => $service

@@ -10,5 +10,14 @@ class Product extends Model
     /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'stock', 'image'];
+    protected $fillable = ['name', 'description', 'price', 'stock', 'image', 'active'];
+    
+    public function categories()
+{
+    return $this->belongsToMany(Category::class)
+        ->withPivot('active')
+        ->withTimestamps()
+        ->wherePivot('active', 1);
+}
+
 }

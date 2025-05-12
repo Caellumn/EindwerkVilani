@@ -55,6 +55,13 @@ class ProductController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/Product")
      *     ),
      *     @OA\Response(
+     *         response=400,
+     *         description="Product already exists",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Product already exists")
+     *         )
+     *     ),
+     *     @OA\Response(
      *         response=422,
      *         description="Validation error"
      *     )
@@ -170,8 +177,8 @@ class ProductController extends Controller
      * @OA\Delete(
      *     path="/products/{id}",
      *     tags={"Products"},
-     *     summary="Delete a product",
-     *     description="Deletes a product",
+     *     summary="Soft delete a product",
+     *     description="Marks a product as inactive (soft delete) instead of removing it from the database",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -195,7 +202,8 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         //remove a product from the database by name
-        $product->delete();
+        $product->active = 0;
+        $product->save();
         return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 }

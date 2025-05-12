@@ -2,20 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
 {
+    /** @use HasFactory<\Database\Factories\ServiceFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
-        'duration_phase_1',
-        'rest_duration',
-        'duration_phase_2',
+        'hairlength',
+        'price',
+        'active'
     ];
-
-    public function serviceWithHairlengths()
+   
+    public function categories()
     {
-        return $this->hasMany(ServiceWithHairlength::class);
+        return $this->belongsToMany(Category::class)
+            ->withPivot('active')
+            ->withTimestamps()
+            ->where('category_service.active', 1);
     }
+
 }

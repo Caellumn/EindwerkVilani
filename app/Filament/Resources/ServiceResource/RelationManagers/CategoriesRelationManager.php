@@ -7,36 +7,29 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ServiceWithHairlengthsRelationManager extends RelationManager
+class CategoriesRelationManager extends RelationManager
 {
-    protected static string $relationship = 'serviceWithHairlengths';
+    protected static string $relationship = 'categories';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('hairlength_id')
-                    ->relationship('hairlength', 'length')
-                    ->required(),
-                Forms\Components\TextInput::make('price')
+                Forms\Components\TextInput::make('category_id')
                     ->required()
-                    ->numeric()
-                    ->prefix('€'),
+                    ->maxLength(255),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('category_id')
             ->columns([
-                Tables\Columns\TextColumn::make('hairlength.length')
-                    ->label('Hair Length')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('price')
-                    ->money('EUR')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('category_id'),
             ])
             ->filters([
                 //
@@ -54,4 +47,4 @@ class ServiceWithHairlengthsRelationManager extends RelationManager
                 ]),
             ]);
     }
-} 
+}
