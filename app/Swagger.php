@@ -29,7 +29,10 @@ use OpenApi\Annotations as OA;
  *     description="Service management endpoints"
  * )
  * 
- * 
+ * @OA\Tag(
+ *     name="Product Categories",
+ *     description="API Endpoints for managing product categories relationships"
+ * )
  * 
  * @OA\Schema(
  *     schema="Product",
@@ -54,6 +57,23 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="duration_phase_2", type="integer", example=0),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Category",
+ *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="name", type="string", example="Hair Care"),
+ *     @OA\Property(property="description", type="string", example="Hair care products"),
+ *     @OA\Property(property="active", type="integer", example=1, description="1 for active category, 0 for inactive/deleted"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(
+ *         property="pivot",
+ *         type="object",
+ *         @OA\Property(property="product_id", type="integer", example=1),
+ *         @OA\Property(property="category_id", type="integer", example=1),
+ *         @OA\Property(property="active", type="integer", example=1, description="1 for active relationship, 0 for inactive")
+ *     )
  * )
  */
 class Swagger

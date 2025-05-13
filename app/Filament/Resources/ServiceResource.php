@@ -63,6 +63,7 @@ class ServiceResource extends Resource
                             ->relationship('categories', 'name')
                             ->multiple()
                             ->preload()
+                            //+ button
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
                                     ->required()
@@ -138,10 +139,16 @@ class ServiceResource extends Resource
                     ->label('Hair Length'),
                 Tables\Filters\TernaryFilter::make('active')
                     ->label('Active Status')
-                    ->placeholder('All Services')
+                    ->placeholder('All services')  // Changed from 'All Services' to be clear this is the default view
                     ->trueLabel('Active Services')
                     ->falseLabel('Inactive Services')
-                    ->boolean(),
+                    ->boolean()
+                    ->default(true)  // This makes "Active Services" the default selection
+                    ->queries(
+                        true: fn (Builder $query): Builder => $query->where('active', 1),
+                        false: fn (Builder $query): Builder => $query->where('active', 0),
+                        blank: fn (Builder $query): Builder => $query  // Show all when "All" is selected
+                    ),
                 Tables\Filters\Filter::make('price_range')
                     ->form([
                         Forms\Components\Grid::make()

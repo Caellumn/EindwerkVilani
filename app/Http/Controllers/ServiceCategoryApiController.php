@@ -37,6 +37,62 @@ class ServiceCategoryApiController extends Controller
         return $service->categories;
     }
 
+
+    /**
+     * @OA\Get(
+     *     path="/api/categories/with-services",
+     *     summary="Get all categories with their associated services",
+     *     tags={"Service Categories"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of categories with their services",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="knipper"),
+     *                 @OA\Property(property="description", type="string", example="knipper"),
+     *                 @OA\Property(property="active", type="integer", example=1),
+     *                 @OA\Property(
+     *                     property="services",
+     *                     type="array",
+     *                     @OA\Items(ref="#/components/schemas/Service")
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
+     * 
+     * API Endpoint: GET /services/categories/all
+     */
+    public function showAllWithServices()
+    {
+        // Get all categories
+        $categories = Category::all();
+        
+        // For each category, load its associated products
+       
+        $categories->load('services');
+        
+
+        
+        // Remove timestamps from response
+        $categories->map(function ($category) {
+            $category->makeHidden(['created_at', 'updated_at']);
+            
+            // Also remove timestamps from each product
+            $category->services->map(function ($service) {
+                $service->makeHidden(['created_at', 'updated_at', 'pivot']);
+                return $service;
+            });
+            
+            return $category;
+        });
+        
+        return $categories;
+    }
+
     /**
      * Attach categories to a service
      * 

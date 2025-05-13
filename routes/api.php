@@ -6,7 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceApiController;
 use App\Http\Controllers\ServiceCategoryApiController;
 use App\Http\Controllers\ServiceWithHairlengthApiController;
-
+use App\Http\Controllers\ProductCategoryApiController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -28,6 +28,11 @@ Route::apiResource('/serviceswithhairlengths', ServiceWithHairlengthApiControlle
 Route::apiResource('/services/{service}/categories', ServiceCategoryApiController::class)->only(['index', 'attach', 'detach', 'sync']);
 Route::apiResource('/services/{service}/categories/{category}', ServiceCategoryApiController::class)->only(['updateStatus']);
 Route::apiResource('/services/{service}/categories/toggle', ServiceCategoryApiController::class)->only(['toggle']);
+Route::get('/services/categories/all', [ServiceCategoryApiController::class, 'showAllWithServices']);
+
+Route::apiResource('/products/{product}/categories', ProductCategoryApiController::class)->only(['index', 'attach', 'detach', 'sync']);
+Route::apiResource('/products/{product}/categories/{category}', ProductCategoryApiController::class)->only(['updateStatus']);
+Route::apiResource('/products/{product}/categories/toggle', ProductCategoryApiController::class)->only(['toggle']);
 // Service-Category relationship routes
 // Route::get('/services/{service}/categories', [ServiceCategoryApiController::class, 'index']);
 // Route::post('/services/{service}/categories', [ServiceCategoryApiController::class, 'attach']);

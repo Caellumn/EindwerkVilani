@@ -12,7 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use App\Models\Category;
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
@@ -27,7 +27,22 @@ class ProductResource extends Resource
                 Forms\Components\Textarea::make('description')->required()->maxLength(400),
                 Forms\Components\TextInput::make('price')->required(),
                 Forms\Components\TextInput::make('stock')->required(),
-                Forms\Components\FileUpload::make('image')->required(),
+                Forms\Components\FileUpload::make('image')->nullable(),
+                Forms\Components\Section::make('Categories')
+                    ->schema([
+                        Forms\Components\Select::make('categories')
+                            ->relationship('categories', 'name')
+                            ->multiple()
+                            ->preload()
+                            //+ button
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\Toggle::make('active')
+                                    ->default(true),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -39,11 +54,35 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('price')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('stock')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('categories.name')
+                    ->badge()
+                    ->color('success')
+                    ->label('Categories')
+                    ->bulleted(false)
+                    ->searchable()
+                    ->action(function ($record, $column, $state) {
+                        // Get the category by name
+                        $category = Category::where('name', $state)->first();
+                        
+                        if ($category) {
+                            // Set the filter to this category by using closure reference to Livewire component
+                            $livewire = $column->getTable()->getLivewire();
+                            $livewire->tableFilters['categories']['values'] = [$category->id];
+                        }
+                    }),
                 Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\TextColumn::make('description')->sortable()->searchable()->limit(50)->suffix('...'),
+
             ])
             ->filters([ 
                 //
+                Tables\Filters\TernaryFilter::make('active')
+                    ->label('Active Status')
+                    ->placeholder('All Products')
+                    ->trueLabel('Active Products')
+                    ->falseLabel('Inactive Products')
+                    ->boolean()
+                    ->default(true)
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
