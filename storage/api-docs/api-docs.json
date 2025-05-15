@@ -671,7 +671,7 @@
                     "Services"
                 ],
                 "summary": "Get all services",
-                "description": "Returns list of all services",
+                "description": "Returns list of all active services",
                 "operationId": "1668f1b477351590ed9483fa8dbb1c0e",
                 "responses": {
                     "200": {
@@ -683,6 +683,22 @@
                                     "items": {
                                         "$ref": "#/components/schemas/Service"
                                     }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No active services found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No services are active"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -768,6 +784,47 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/services/all": {
+            "get": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Get all services (including inactive)",
+                "description": "Returns list of all services regardless of active status",
+                "operationId": "3fcc36cbe991a85deb8b3bd185fc37ce",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Service"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No services found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No services are found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1095,6 +1152,54 @@
                     },
                     "404": {
                         "description": "Service not found"
+                    }
+                }
+            }
+        },
+        "/api/categories/with-services": {
+            "get": {
+                "tags": [
+                    "Service Categories"
+                ],
+                "summary": "Get all categories with their associated services",
+                "operationId": "bee9020f9497ba0a013edfc0f8ade2b6",
+                "responses": {
+                    "200": {
+                        "description": "List of categories with their services",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "knipper"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "knipper"
+                                            },
+                                            "active": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "services": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Service"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

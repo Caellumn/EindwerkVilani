@@ -37,6 +37,28 @@ class ServiceCategoryApiController extends Controller
         return $service->categories;
     }
 
+    /**
+     * Display a listing of all category names.
+     * 
+     * @OA\Get(
+     *     path="/api/services/categories",
+     *     tags={"Categories"},
+     *     summary="Get all category names",
+     *     description="Returns a list of all category names",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="array", @OA\Items(type="string"))
+     *     )
+     * )
+     */
+    public function indexAll(){
+       // map through all objects and pickout the name from categories
+       $categories = Category::all()->map(function($category){
+        return $category->name;
+       });
+       return $categories;
+    }
 
     /**
      * @OA\Get(

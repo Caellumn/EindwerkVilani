@@ -22,13 +22,13 @@ Route::get('/user', function (Request $request) {
 //betere manier
 Route::apiResource('/products', ProductController::class)->only(['index', 'show', 'store', 'destroy','update']);
 Route::apiResource('/services', ServiceApiController::class)->only(['index', 'show', 'store', 'destroy','update']);
-Route::apiResource('/serviceswithhairlengths', ServiceWithHairlengthApiController::class)->only(['index', 'show', 'store', 'destroy','update']);
+
 
 
 Route::apiResource('/services/{service}/categories', ServiceCategoryApiController::class)->only(['index', 'attach', 'detach', 'sync']);
 Route::apiResource('/services/{service}/categories/{category}', ServiceCategoryApiController::class)->only(['updateStatus']);
 Route::apiResource('/services/{service}/categories/toggle', ServiceCategoryApiController::class)->only(['toggle']);
-Route::get('/services/categories/all', [ServiceCategoryApiController::class, 'showAllWithServices']);
+Route::get('/services/categories', [ServiceCategoryApiController::class, 'indexAll']);
 
 Route::apiResource('/products/{product}/categories', ProductCategoryApiController::class)->only(['index', 'attach', 'detach', 'sync']);
 Route::apiResource('/products/{product}/categories/{category}', ProductCategoryApiController::class)->only(['updateStatus']);

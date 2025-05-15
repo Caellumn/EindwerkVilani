@@ -15,19 +15,62 @@ class ServiceApiController extends Controller
      *     path="/services",
      *     tags={"Services"},
      *     summary="Get all services",
-     *     description="Returns list of all services",
+     *     description="Returns list of all active services",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Service"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No active services found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No services are active")
+     *         )
      *     )
       * )
       */
     public function index()
     {
+        
+        //if no services are active, return an error
+        if(Service::where('active', 1)->count() == 0){
+            return response()->json(['message' => 'No services are active'], 404);
+        }
         // get all services where active is 1
         return Service::where('active', 1)->get();
     }
+
+    /**
+     * Display a listing of all services.
+     * 
+     * @OA\Get(
+     *     path="/services/all",
+     *     tags={"Services"},
+     *     summary="Get all services (including inactive)",
+     *     description="Returns list of all services regardless of active status",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Service"))
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No services found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No services are found")
+     *         )
+     *     )
+     * )
+     */
+    public function indexAll(){
+
+        //if not services are found return an error
+        if(Service::all()->count() == 0){
+            return response()->json(['message' => 'No services are found'], 404);
+        }
+        return Service::all();
+    }   
 
     /**
      * Store a newly created resource in storage.
