@@ -15,16 +15,365 @@
         }
     ],
     "paths": {
-        "/api/products/{product}/categories": {
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories",
+                "description": "Display a listing of the resource.",
+                "operationId": "34d7068e4b49cdbb56a6cc139afc6606",
+                "responses": {
+                    "200": {
+                        "description": "List of categories",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Category Name"
+                                            },
+                                            "active": {
+                                                "type": "integer",
+                                                "example": 1
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No categories found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No categories were found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create a new category",
+                "description": "Creates a new category. Only the name field is mandatory, active is optional.",
+                "operationId": "6d86fd89cd9f60b1f92c7f637c1edf9c",
+                "requestBody": {
+                    "description": "Category data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Category name (Required)",
+                                        "type": "string",
+                                        "example": "New Category"
+                                    },
+                                    "active": {
+                                        "description": "Category status (Optional, default: 1)",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "New Category"
+                                        },
+                                        "active": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error - Invalid or missing fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The name field is required"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "name": [
+                                                    "The name field is required"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories/{categoryId}": {
+            "get": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get a specific category by ID",
+                "description": "Display the specified resource.",
+                "operationId": "2c0b951408486bb189a8383a6815e40a",
+                "parameters": [
+                    {
+                        "name": "categoryId",
+                        "in": "path",
+                        "description": "ID of category to return",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Category Name"
+                                        },
+                                        "active": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update an existing category",
+                "description": "Updates an existing category. name is required.",
+                "operationId": "efe20add4caf85f69a24e3c4949d7a16",
+                "parameters": [
+                    {
+                        "name": "categoryId",
+                        "in": "path",
+                        "description": "ID of category to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Category data. name is required.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Updated Category Name"
+                                    },
+                                    "active": {
+                                        "description": "Optional field",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Updated Category Name"
+                                        },
+                                        "active": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error - Invalid fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "name": [
+                                                    "The name field must be unique"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Deactivate a category (soft delete)",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "43925e52eec4d6ea125403aa6cac3a40",
+                "parameters": [
+                    {
+                        "name": "categoryId",
+                        "in": "path",
+                        "description": "ID of category to deactivate",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Category deactivated successfully"
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Category not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/products/{productId}/categories": {
             "get": {
                 "tags": [
                     "Product Categories"
                 ],
                 "summary": "Get all categories for a product",
-                "operationId": "ab392a75842d8ae4ef3cc3f449b67b4b",
+                "operationId": "3aabc98abfa08dd6f9aa8a3e4cfeb27f",
                 "parameters": [
                     {
-                        "name": "product",
+                        "name": "productId",
                         "in": "path",
                         "description": "ID of product",
                         "required": true,
@@ -41,163 +390,51 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Category"
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Category Name"
+                                            }
+                                        },
+                                        "type": "object"
                                     }
                                 }
                             }
                         }
                     },
                     "404": {
-                        "description": "Product not found"
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Product Categories"
-                ],
-                "summary": "Attach categories to a product",
-                "operationId": "26fbecaedb3311399b2e4109d62d682c",
-                "parameters": [
-                    {
-                        "name": "product",
-                        "in": "path",
-                        "description": "ID of product",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "categories"
-                                ],
-                                "properties": {
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            1,
-                                            2,
-                                            3
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories attached successfully",
+                        "description": "Product not found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Categories attached successfully"
-                                        },
-                                        "product": {
-                                            "$ref": "#/components/schemas/Product"
+                                            "example": "Product not found"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Product or categories not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Product Categories"
-                ],
-                "summary": "Detach categories from a product",
-                "operationId": "4be777106a9ab9b418ebe237dc4ae05c",
-                "parameters": [
-                    {
-                        "name": "product",
-                        "in": "path",
-                        "description": "ID of product",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "categories": {
-                                        "description": "Optional. If not provided, all categories will be detached",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            1,
-                                            2
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories detached successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Categories detached successfully"
-                                        },
-                                        "product": {
-                                            "$ref": "#/components/schemas/Product"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Product not found or no categories found"
                     }
                 }
             }
         },
-        "/api/products/{product}/categories/sync": {
+        "/api/products/{productId}/categories/sync": {
             "put": {
                 "tags": [
                     "Product Categories"
                 ],
                 "summary": "Sync categories for a product (replace all existing with the provided set)",
-                "operationId": "59b7411e7d3ea6c8407312a0a7d8330e",
+                "operationId": "a3bc4ab14f37d487897085a314edb626",
                 "parameters": [
                     {
-                        "name": "product",
+                        "name": "productId",
                         "in": "path",
                         "description": "ID of product",
                         "required": true,
@@ -207,6 +444,7 @@
                     }
                 ],
                 "requestBody": {
+                    "description": "Add and remove categories. Send an array of category ids to add and/or change the current categories, send an empty array to remove all.",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -216,6 +454,7 @@
                                 ],
                                 "properties": {
                                     "categories": {
+                                        "description": "Array of category IDs. Send an empty array [] to remove all categories.",
                                         "type": "array",
                                         "items": {
                                             "type": "integer"
@@ -244,7 +483,46 @@
                                             "example": "Categories synced successfully"
                                         },
                                         "product": {
-                                            "$ref": "#/components/schemas/Product"
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Product Name"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Product description"
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 99.99
+                                                },
+                                                "stock": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "categories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Category Name"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -253,78 +531,22 @@
                         }
                     },
                     "404": {
-                        "description": "Product not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
-        "/api/products/{product}/categories/{category}": {
-            "patch": {
-                "tags": [
-                    "Product Categories"
-                ],
-                "summary": "Update the active status of a specific product-category relationship",
-                "operationId": "1e02dc3feb98e03f6abdf903a7d3a0bd",
-                "parameters": [
-                    {
-                        "name": "product",
-                        "in": "path",
-                        "description": "ID of product",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "category",
-                        "in": "path",
-                        "description": "ID of category",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "active"
-                                ],
-                                "properties": {
-                                    "active": {
-                                        "description": "Status: 1 for active, 0 for inactive",
-                                        "type": "integer",
-                                        "enum": [
-                                            0,
-                                            1
-                                        ],
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Status updated successfully",
+                        "description": "Product not found or category not found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Status updated successfully"
+                                            "example": "Product not found"
                                         },
-                                        "product": {
-                                            "$ref": "#/components/schemas/Product"
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "categories.0": [
+                                                    "The selected categories.0 is invalid."
+                                                ]
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -332,84 +554,104 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "Product not found or category not associated with product"
-                    },
                     "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
-        "/api/products/{product}/categories/toggle": {
-            "post": {
-                "tags": [
-                    "Product Categories"
-                ],
-                "summary": "Toggle categories for a product (attach if not exists, detach if exists)",
-                "operationId": "74d0f243bff35e1e69eb0c595d31af11",
-                "parameters": [
-                    {
-                        "name": "product",
-                        "in": "path",
-                        "description": "ID of product",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "categories"
-                                ],
-                                "properties": {
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            1,
-                                            2,
-                                            3
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories toggled successfully",
+                        "description": "Validation error - Missing or invalid fields",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Categories toggled successfully"
+                                            "example": "The categories field is required"
                                         },
-                                        "product": {
-                                            "$ref": "#/components/schemas/Product"
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "categories": [
+                                                    "The categories field is required"
+                                                ]
+                                            }
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Product not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/products-with-categories": {
+            "get": {
+                "tags": [
+                    "Product Categories"
+                ],
+                "summary": "Get all products with their associated categories",
+                "operationId": "af391520aaa2d7baa51c2b38f2f7834d",
+                "responses": {
+                    "200": {
+                        "description": "List of products with their categories",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Product Name"
+                                            },
+                                            "categories": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Category Name"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/product-categories": {
+            "get": {
+                "tags": [
+                    "Product Categories"
+                ],
+                "summary": "Get all categories that are associated with any products",
+                "operationId": "23ca46d2d95120c1f2042bfb48a12fdb",
+                "responses": {
+                    "200": {
+                        "description": "List of category names used by products",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "Category Name"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -990,18 +1232,19 @@
                 }
             }
         },
-        "/services/{service}/categories": {
+        "/api/services/{serviceId}/categories": {
             "get": {
                 "tags": [
                     "Service Categories"
                 ],
                 "summary": "Get all categories for a service",
                 "description": "Get all categories for a service",
-                "operationId": "eb80506dd4ef319f0729a874429b463b",
+                "operationId": "75503f62a4dbee40c3f8cae85fc1687c",
                 "parameters": [
                     {
-                        "name": "service",
+                        "name": "serviceId",
                         "in": "path",
+                        "description": "ID of service",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -1010,162 +1253,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
-                    },
-                    "404": {
-                        "description": "Service not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Service Categories"
-                ],
-                "summary": "Sync categories for a service",
-                "description": "Sync categories for a service",
-                "operationId": "420403730fd94234ec4a718a1c445f19",
-                "parameters": [
-                    {
-                        "name": "service",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories synced successfully"
-                    },
-                    "404": {
-                        "description": "Service not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            },
-            "post": {
-                "tags": [
-                    "Service Categories"
-                ],
-                "summary": "Attach categories to a service",
-                "description": "Attach categories to a service",
-                "operationId": "0a2847168af0bd35dd4588fad1e43cb2",
-                "parameters": [
-                    {
-                        "name": "service",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories attached successfully"
-                    },
-                    "404": {
-                        "description": "Service not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Service Categories"
-                ],
-                "summary": "Detach categories from a service",
-                "description": "Detach categories from a service",
-                "operationId": "c75c156851c0e6f701f83a46460cf255",
-                "parameters": [
-                    {
-                        "name": "service",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Categories detached successfully"
-                    },
-                    "404": {
-                        "description": "Service not found"
-                    }
-                }
-            }
-        },
-        "/api/categories/with-services": {
-            "get": {
-                "tags": [
-                    "Service Categories"
-                ],
-                "summary": "Get all categories with their associated services",
-                "operationId": "bee9020f9497ba0a013edfc0f8ade2b6",
-                "responses": {
-                    "200": {
-                        "description": "List of categories with their services",
+                        "description": "List of service categories",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1178,20 +1266,72 @@
                                             },
                                             "name": {
                                                 "type": "string",
-                                                "example": "knipper"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "example": "knipper"
-                                            },
-                                            "active": {
+                                                "example": "Category Name"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/services-with-categories": {
+            "get": {
+                "tags": [
+                    "Service Categories"
+                ],
+                "summary": "Get all services with their associated categories",
+                "operationId": "fa72f5bbdaf7f00e875c26f890327989",
+                "responses": {
+                    "200": {
+                        "description": "List of services with their categories",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
                                                 "type": "integer",
                                                 "example": 1
                                             },
-                                            "services": {
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Service Name"
+                                            },
+                                            "categories": {
                                                 "type": "array",
                                                 "items": {
-                                                    "$ref": "#/components/schemas/Service"
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Category Name"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             }
                                         },
@@ -1204,70 +1344,44 @@
                 }
             }
         },
-        "/services/{service}/categories/{category}": {
-            "patch": {
+        "/api/service-categories": {
+            "get": {
                 "tags": [
                     "Service Categories"
                 ],
-                "summary": "Update status for a service-category relationship",
-                "description": "Update category status for a service",
-                "operationId": "b9e67fe30895aa8c5f2e8c811e1117d2",
-                "parameters": [
-                    {
-                        "name": "service",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "category",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "active": {
-                                        "type": "integer",
-                                        "example": 0
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "Get all categories that are associated with any services",
+                "operationId": "b9447b51dc122feed362a6d0de383a0a",
                 "responses": {
                     "200": {
-                        "description": "Status updated successfully"
-                    },
-                    "404": {
-                        "description": "Relationship not found"
+                        "description": "List of category names used by services",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "Category Name"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/services/{service}/categories/toggle": {
-            "post": {
+        "/api/services/{serviceId}/categories/sync": {
+            "put": {
                 "tags": [
                     "Service Categories"
                 ],
-                "summary": "Toggle categories for a service",
-                "description": "Toggle service-category relationship",
-                "operationId": "dd727a63860523ada21da273600a85a8",
+                "summary": "Sync categories for a service",
+                "description": "Sync categories for a service",
+                "operationId": "cbff316061c8c54b68474ce31bd2d80b",
                 "parameters": [
                     {
-                        "name": "service",
+                        "name": "serviceId",
                         "in": "path",
+                        "description": "ID of service",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -1275,16 +1389,26 @@
                     }
                 ],
                 "requestBody": {
+                    "description": "Add and remove categories. Send an array of category ids to add and/or change the current categories, send an empty array to remove all.",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "categories"
+                                ],
                                 "properties": {
                                     "categories": {
+                                        "description": "Array of category IDs. Send an empty array [] to remove all categories.",
                                         "type": "array",
                                         "items": {
                                             "type": "integer"
-                                        }
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -1294,10 +1418,114 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Categories toggled successfully"
+                        "description": "Categories synced successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Categories synced successfully"
+                                        },
+                                        "service": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Service Name"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Service description"
+                                                },
+                                                "hairlength": {
+                                                    "type": "string",
+                                                    "example": "medium"
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 99.99
+                                                },
+                                                "active": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "categories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Category Name"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "Service not found"
+                        "description": "Service not found or category not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service not found"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "categories.0": [
+                                                    "The selected categories.0 is invalid."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error - Missing or invalid fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The categories field is required"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "categories": [
+                                                    "The categories field is required"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1395,6 +1623,7 @@
                         "example": 1
                     },
                     "name": {
+                        "description": "Category name (required)",
                         "type": "string",
                         "example": "Hair Care"
                     },
@@ -1403,7 +1632,7 @@
                         "example": "Hair care products"
                     },
                     "active": {
-                        "description": "1 for active category, 0 for inactive/deleted",
+                        "description": "Category status: 1 for active, 0 for inactive/deleted (optional, default: 1)",
                         "type": "integer",
                         "example": 1
                     },
@@ -1439,6 +1668,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Categories",
+            "description": "API Endpoints for managing categories"
+        },
         {
             "name": "Product Categories",
             "description": "API Endpoints for managing product categories relationships"

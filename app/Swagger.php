@@ -62,9 +62,9 @@ use OpenApi\Annotations as OA;
  * @OA\Schema(
  *     schema="Category",
  *     @OA\Property(property="id", type="integer", format="int64", example=1),
- *     @OA\Property(property="name", type="string", example="Hair Care"),
+ *     @OA\Property(property="name", type="string", example="Hair Care", description="Category name (required)"),
  *     @OA\Property(property="description", type="string", example="Hair care products"),
- *     @OA\Property(property="active", type="integer", example=1, description="1 for active category, 0 for inactive/deleted"),
+ *     @OA\Property(property="active", type="integer", example=1, description="Category status: 1 for active, 0 for inactive/deleted (optional, default: 1)"),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time"),
  *     @OA\Property(

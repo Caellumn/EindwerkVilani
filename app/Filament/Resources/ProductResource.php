@@ -69,13 +69,19 @@ class ProductResource extends Resource
                             $livewire = $column->getTable()->getLivewire();
                             $livewire->tableFilters['categories']['values'] = [$category->id];
                         }
-                    }),
+                    })
+                    ->tooltip('Click to filter by this category'),
                 Tables\Columns\ImageColumn::make('image'),
                 Tables\Columns\TextColumn::make('description')->sortable()->searchable()->limit(50)->suffix('...'),
 
             ])
             ->filters([ 
                 //
+                Tables\Filters\SelectFilter::make('categories')
+                    ->relationship('categories', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->label('Filter by Category'),
                 Tables\Filters\TernaryFilter::make('active')
                     ->label('Active Status')
                     ->placeholder('All Products')

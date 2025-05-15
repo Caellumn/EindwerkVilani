@@ -13,275 +13,283 @@ class ServiceCategoryApiController extends Controller
      * Get all categories for a service
      * 
      * @OA\Get(
-     *     path="/services/{service}/categories",
+     *     path="/api/services/{serviceId}/categories",
      *     tags={"Service Categories"},
      *     summary="Get all categories for a service",
      *     @OA\Parameter(
-     *         name="service",
+     *         name="serviceId",
      *         in="path",
+     *         description="ID of service",
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Success"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Service not found"
-     *     )
-     * )
-     */
-    public function index(Service $service)
-    {
-        return $service->categories;
-    }
-
-    /**
-     * Display a listing of all category names.
-     * 
-     * @OA\Get(
-     *     path="/api/services/categories",
-     *     tags={"Categories"},
-     *     summary="Get all category names",
-     *     description="Returns a list of all category names",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(type="string"))
-     *     )
-     * )
-     */
-    public function indexAll(){
-       // map through all objects and pickout the name from categories
-       $categories = Category::all()->map(function($category){
-        return $category->name;
-       });
-       return $categories;
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/api/categories/with-services",
-     *     summary="Get all categories with their associated services",
-     *     tags={"Service Categories"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of categories with their services",
+     *         description="List of service categories",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
      *                 type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="knipper"),
-     *                 @OA\Property(property="description", type="string", example="knipper"),
-     *                 @OA\Property(property="active", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Category Name")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Service not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Service not found")
+     *         )
+     *     )
+     * )
+     * 
+     * API Endpoint: GET /api/services/{serviceId}/categories
+     */
+    public function index(Request $request, $serviceId)
+    {
+        // Find the service by ID
+        $service = Service::find($serviceId);
+        
+        // Return 404 if service not found
+        if (!$service) {
+            return response()->json([
+                'message' => 'Service not found'
+            ], 404);
+        }
+        
+        // Return categories
+        return $service->categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name
+            ];
+        });
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/services-with-categories",
+     *     summary="Get all services with their associated categories",
+     *     tags={"Service Categories"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of services with their categories",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Service Name"),
      *                 @OA\Property(
-     *                     property="services",
+     *                     property="categories",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Service")
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="name", type="string", example="Category Name")
+     *                     )
      *                 )
      *             )
      *         )
      *     )
      * )
      * 
-     * API Endpoint: GET /services/categories/all
+     * API Endpoint: GET /api/services-with-categories
      */
-    public function showAllWithServices()
+    public function servicesWithCategories()
     {
-        // Get all categories
-        $categories = Category::all();
+        // Get services with their categories but only select id and name fields
+        $services = Service::with(['categories' => function($query) {
+            $query->select(['categories.id', 'categories.name']);
+        }])->get(['id', 'name']);
         
-        // For each category, load its associated products
-       
-        $categories->load('services');
-        
-
-        
-        // Remove timestamps from response
-        $categories->map(function ($category) {
-            $category->makeHidden(['created_at', 'updated_at']);
-            
-            // Also remove timestamps from each product
-            $category->services->map(function ($service) {
-                $service->makeHidden(['created_at', 'updated_at', 'pivot']);
-                return $service;
-            });
-            
-            return $category;
+        // Transform the data to include only what's needed
+        $formattedServices = $services->map(function ($service) {
+            return [
+                'id' => $service->id,
+                'name' => $service->name,
+                'categories' => $service->categories->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name
+                    ];
+                })
+            ];
         });
         
-        return $categories;
+        return response()->json($formattedServices);
     }
 
     /**
-     * Attach categories to a service
-     * 
-     * @OA\Post(
-     *     path="/services/{service}/categories",
+     * @OA\Get(
+     *     path="/api/service-categories",
+     *     summary="Get all categories that are associated with any services",
      *     tags={"Service Categories"},
-     *     summary="Attach categories to a service",
-     *     @OA\Parameter(
-     *         name="service",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer"))
-     *         )
-     *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Categories attached successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Service not found"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
+     *         description="List of category names used by services",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="string", example="Category Name")
+     *         )
      *     )
      * )
+     * 
+     * API Endpoint: GET /api/service-categories
      */
-    public function attach(Request $request, Service $service)
+    public function serviceCategories()
     {
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
-        ]);
-
-
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
-        });
-
-        if (!Category::whereIn('id', $request->categories)->exists()) {
-            return response()->json([
-                'message' => 'Categories not found'
-            ], 404);
-        }
-
-        //if no body was given send a 422 error
-        if (!$request->has('categories')) {
-            return response()->json([
-                'message' => 'No categories were given'
-            ], 422);
-        }
-
-
-        $service->categories()->attach($categories);
-
+        // Get all categories that are associated with at least one service
+        // Only select id and name fields
+        $categoriesWithServices = Category::select(['id', 'name'])
+            ->whereHas('services')
+            ->get();
         
-
-        return response()->json([
-            'message' => 'Categories attached successfully',
-            'service' => $service->load('categories')
-        ]);
-    }
-
-    /**
-     * Detach categories from a service
-     * 
-     * @OA\Delete(
-     *     path="/services/{service}/categories",
-     *     tags={"Service Categories"},
-     *     summary="Detach categories from a service",
-     *     @OA\Parameter(
-     *         name="service",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categories detached successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Service not found"
-     *     )
-     * )
-     */
-    public function detach(Request $request, Service $service)
-    {
-        if ($request->has('categories')) {
-            $service->categories()->detach($request->categories);
-            $message = 'Specified categories detached successfully';
-        } else {
-            $service->categories()->detach();
-            $message = 'All categories detached successfully';
-        }
-
-        //if no cateogry was found send a 404 error
-        if (!$service->categories()->exists()) {
-            return response()->json([
-                'message' => 'No categories were found'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => $message,
-            'service' => $service->load('categories')
-        ]);
+        // Extract just the names as a simple array
+        $categoryNames = $categoriesWithServices->pluck('name');
+        
+        return response()->json($categoryNames);
     }
 
     /**
      * Sync categories for a service
      * 
      * @OA\Put(
-     *     path="/services/{service}/categories",
+     *     path="/api/services/{serviceId}/categories/sync",
      *     tags={"Service Categories"},
      *     summary="Sync categories for a service",
      *     @OA\Parameter(
-     *         name="service",
+     *         name="serviceId",
      *         in="path",
+     *         description="ID of service",
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Add and remove categories. Send an array of category ids to add and/or change the current categories, send an empty array to remove all.",
      *         @OA\JsonContent(
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer"))
+     *             required={"categories"},
+     *             @OA\Property(
+     *                 property="categories",
+     *                 type="array",
+     *                 description="Array of category IDs. Send an empty array [] to remove all categories.",
+     *                 @OA\Items(type="integer"),
+     *                 example={1, 2, 3}
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Categories synced successfully"
+     *         description="Categories synced successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Categories synced successfully"),
+     *             @OA\Property(
+     *                 property="service",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Service Name"),
+     *                 @OA\Property(property="description", type="string", example="Service description"),
+     *                 @OA\Property(property="hairlength", type="string", example="medium"),
+     *                 @OA\Property(property="price", type="number", format="float", example=99.99),
+     *                 @OA\Property(property="active", type="integer", example=1),
+     *                 @OA\Property(
+     *                     property="categories",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="name", type="string", example="Category Name")
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Service not found"
+     *         description="Service not found or category not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Service not found"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={"categories.0": {"The selected categories.0 is invalid."}}
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error - Missing or invalid fields",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The categories field is required"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={"categories": {"The categories field is required"}}
+     *             )
+     *         )
      *     )
      * )
+     * 
+     * API Endpoint: PUT /api/services/{serviceId}/categories/sync
      */
-    public function sync(Request $request, Service $service)
+    public function sync(Request $request, $serviceId)
     {
-        // Validate that the request contains an array of valid category IDs
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
+        // Find the service by ID
+        $service = Service::find($serviceId);
+        
+        // Return 404 if service not found
+        if (!$service) {
+            return response()->json([
+                'message' => 'Service not found'
+            ], 404);
+        }
+        
+        // Check if categories field exists in the request
+        if (!$request->has('categories')) {
+            return response()->json([
+                'message' => 'The categories field is required',
+                'errors' => [
+                    'categories' => ['The categories field is required']
+                ]
+            ], 422);
+        }
+        
+        // Validate that the request contains an array field
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'categories' => 'present|array',
         ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        // Convert the array of category IDs into a collection with pivot data
-        // For each category ID, we set 'active' => 1 in the pivot table
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
-        });
+        // Only validate category IDs if array is not empty
+        if (count($request->categories) > 0) {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'categories.*' => 'exists:categories,id'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'One or more category IDs are invalid',
+                    'errors' => $validator->errors()
+                ], 404);
+            }
+            
+            // Convert the array of category IDs into a collection with pivot data
+            // For each category ID, we set 'active' => 1 in the pivot table
+            $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
+                return [$categoryId => ['active' => 1]];
+            });
+        } else {
+            // Empty array means we want to remove all categories
+            $categories = [];
+        }
 
         // The sync method:
         // 1. Detaches all categories not in the provided array
@@ -289,116 +297,31 @@ class ServiceCategoryApiController extends Controller
         // 3. Updates pivot data for categories that remain
         $service->categories()->sync($categories);
 
+        // Load the categories with only id and name fields
+        $service->load(['categories' => function($query) {
+            $query->select('categories.id', 'categories.name');
+        }]);
+        
+        // Format the response to only include necessary fields
+        $formattedService = [
+            'id' => $service->id,
+            'name' => $service->name,
+            'description' => $service->description,
+            'hairlength' => $service->hairlength,
+            'price' => $service->price,
+            'active' => $service->active,
+            'categories' => $service->categories->map(function($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name
+                ];
+            })
+        ];
+
         // Return a success response with the updated service and its categories
         return response()->json([
             'message' => 'Categories synced successfully',
-            'service' => $service->load('categories')
-        ]);
-    }
-
-    /**
-     * Update category status for a service
-     * 
-     * @OA\Patch(
-     *     path="/services/{service}/categories/{category}",
-     *     tags={"Service Categories"},
-     *     summary="Update status for a service-category relationship",
-     *     @OA\Parameter(
-     *         name="service",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="category",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="active", type="integer", example=0)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Status updated successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Relationship not found"
-     *     )
-     * )
-     */
-    public function updateStatus(Request $request, Service $service, Category $category)
-    {
-        $request->validate([
-            'active' => 'required|integer|in:0,1'
-        ]);
-
-        // Check if the relationship exists
-        if (!$service->categories()->where('category_id', $category->id)->exists()) {
-            return response()->json([
-                'message' => 'This service is not associated with the specified category'
-            ], 404);
-        }
-
-        $service->categories()->updateExistingPivot($category->id, [
-            'active' => $request->active
-        ]);
-
-        return response()->json([
-            'message' => 'Status updated successfully',
-            'service' => $service->load('categories')
-        ]);
-    }
-
-    /**
-     * Toggle service-category relationship
-     * 
-     * @OA\Post(
-     *     path="/services/{service}/categories/toggle",
-     *     tags={"Service Categories"},
-     *     summary="Toggle categories for a service",
-     *     @OA\Parameter(
-     *         name="service",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer"))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categories toggled successfully"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Service not found"
-     *     )
-     * )
-     */
-    public function toggle(Request $request, Service $service)
-    {
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
-        ]);
-
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
-        });
-
-        $service->categories()->toggle($categories);
-
-        return response()->json([
-            'message' => 'Categories toggled successfully',
-            'service' => $service->load('categories')
+            'service' => $formattedService
         ]);
     }
 }

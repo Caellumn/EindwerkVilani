@@ -16,11 +16,11 @@ class ProductCategoryApiController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/products/{product}/categories",
+     *     path="/api/products/{productId}/categories",
      *     summary="Get all categories for a product",
      *     tags={"Product Categories"},
      *     @OA\Parameter(
-     *         name="product",
+     *         name="productId",
      *         in="path",
      *         description="ID of product",
      *         required=true,
@@ -29,182 +29,54 @@ class ProductCategoryApiController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="List of product categories",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Category"))
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Product not found"
-     *     )
-     * )
-     * 
-     * API Endpoint: GET /api/products/{product}/categories
-     */
-    public function index(Product $product)
-    {
-        //remove the created at and updated at from the response
-        return $product->categories->map(function ($category) {
-            $category->makeHidden(['created_at', 'updated_at']);
-            return $category;
-        });
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/products/{product}/categories",
-     *     summary="Attach categories to a product",
-     *     tags={"Product Categories"},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="ID of product",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
      *         @OA\JsonContent(
-     *             required={"categories"},
-     *             @OA\Property(
-     *                 property="categories",
-     *                 type="array",
-     *                 @OA\Items(type="integer"),
-     *                 example={1, 2, 3}
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categories attached successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Categories attached successfully"),
-     *             @OA\Property(
-     *                 property="product",
+     *             type="array",
+     *             @OA\Items(
      *                 type="object",
-     *                 ref="#/components/schemas/Product"
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Category Name")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Product or categories not found"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
+     *         description="Product not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Product not found")
+     *         )
      *     )
      * )
      * 
-     * API Endpoint: POST /api/products/{product}/categories
+     * API Endpoint: GET /api/products/{productId}/categories
      */
-    public function attach(Request $request, Product $product)
+    public function index(Request $request, $productId)
     {
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
-        ]);
-
-
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
-        });
-
-        if (!Category::whereIn('id', $request->categories)->exists()) {
-            return response()->json([
-                'message' => 'Categories not found'
-            ], 404);
-        }
-
-        //if no body was given send a 422 error
-        if (!$request->has('categories')) {
-            return response()->json([
-                'message' => 'No categories were given'
-            ], 422);
-        }
-
-
-        $product->categories()->attach($categories);
-
+        // Find the product by ID
+        $product = Product::find($productId);
         
-
-        return response()->json([
-            'message' => 'Categories attached successfully',
-            'product' => $product->load('categories')
-        ]);
-    }
-
-    /**
-     * @OA\Delete(
-     *     path="/api/products/{product}/categories",
-     *     summary="Detach categories from a product",
-     *     tags={"Product Categories"},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="ID of product",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="categories",
-     *                 type="array",
-     *                 @OA\Items(type="integer"),
-     *                 example={1, 2},
-     *                 description="Optional. If not provided, all categories will be detached"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categories detached successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Categories detached successfully"),
-     *             @OA\Property(
-     *                 property="product",
-     *                 type="object",
-     *                 ref="#/components/schemas/Product"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Product not found or no categories found"
-     *     )
-     * )
-     * 
-     * API Endpoint: DELETE /api/products/{product}/categories
-     */
-    public function detach(Request $request, Product $product)
-    {
-        if ($request->has('categories')) {
-            $product->categories()->detach($request->categories);
-            $message = 'Specified categories detached successfully';
-        } else {
-            $product->categories()->detach();
-            $message = 'All categories detached successfully';
-        }
-
-        //if no cateogry was found send a 404 error
-        if (!$product->categories()->exists()) {
+        // Return 404 if product not found
+        if (!$product) {
             return response()->json([
-                'message' => 'No categories were found'
+                'message' => 'Product not found'
             ], 404);
         }
-
-        return response()->json([
-            'message' => $message,
-            'product' => $product->load('categories')
-        ]);
+        
+        // Return categories with only id and name
+        return $product->categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name
+            ];
+        });
     }
 
     /**
      * @OA\Put(
-     *     path="/api/products/{product}/categories/sync",
+     *     path="/api/products/{productId}/categories/sync",
      *     summary="Sync categories for a product (replace all existing with the provided set)",
      *     tags={"Product Categories"},
      *     @OA\Parameter(
-     *         name="product",
+     *         name="productId",
      *         in="path",
      *         description="ID of product",
      *         required=true,
@@ -212,11 +84,13 @@ class ProductCategoryApiController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Add and remove categories. Send an array of category ids to add and/or change the current categories, send an empty array to remove all.",
      *         @OA\JsonContent(
      *             required={"categories"},
      *             @OA\Property(
      *                 property="categories",
      *                 type="array",
+     *                 description="Array of category IDs. Send an empty array [] to remove all categories.",
      *                 @OA\Items(type="integer"),
      *                 example={1, 2, 3}
      *             )
@@ -230,35 +104,107 @@ class ProductCategoryApiController extends Controller
      *             @OA\Property(
      *                 property="product",
      *                 type="object",
-     *                 ref="#/components/schemas/Product"
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Product Name"),
+     *                 @OA\Property(property="description", type="string", example="Product description"),
+     *                 @OA\Property(property="price", type="number", format="float", example=99.99),
+     *                 @OA\Property(property="stock", type="integer", example=10),
+     *                 @OA\Property(
+     *                     property="categories",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="name", type="string", example="Category Name")
+     *                     )
+     *                 )
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Product not found"
+     *         description="Product not found or category not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Product not found"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={"categories.0": {"The selected categories.0 is invalid."}}
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error - Missing or invalid fields",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The categories field is required"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={"categories": {"The categories field is required"}}
+     *             )
+     *         )
      *     )
      * )
      * 
-     * API Endpoint: PUT /api/products/{product}/categories/sync
+     * API Endpoint: PUT /api/products/{productId}/categories/sync
      */
-    public function sync(Request $request, Product $product)
+    public function sync(Request $request, $productId)
     {
-        // Validate that the request contains an array of valid category IDs
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
+        // Find the product by ID
+        $product = Product::find($productId);
+        
+        // Return 404 if product not found
+        if (!$product) {
+            return response()->json([
+                'message' => 'Product not found'
+            ], 404);
+        }
+        
+        // Check if categories field exists in the request
+        if (!$request->has('categories')) {
+            return response()->json([
+                'message' => 'The categories field is required',
+                'errors' => [
+                    'categories' => ['The categories field is required']
+                ]
+            ], 422);
+        }
+        
+        // Validate that the request contains an array field
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'categories' => 'present|array',
         ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        // Convert the array of category IDs into a collection with pivot data
-        // For each category ID, we set 'active' => 1 in the pivot table
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
-        });
+        // Only validate category IDs if array is not empty
+        if (count($request->categories) > 0) {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'categories.*' => 'exists:categories,id'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'One or more category IDs are invalid',
+                    'errors' => $validator->errors()
+                ], 404);
+            }
+            
+            // Convert the array of category IDs into a collection with pivot data
+            // For each category ID, we set 'active' => 1 in the pivot table
+            $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
+                return [$categoryId => ['active' => 1]];
+            });
+        } else {
+            // Empty array means we want to remove all categories
+            $categories = [];
+        }
 
         // The sync method:
         // 1. Detaches all categories not in the provided array
@@ -266,156 +212,116 @@ class ProductCategoryApiController extends Controller
         // 3. Updates pivot data for categories that remain
         $product->categories()->sync($categories);
 
-        // Return a success response with the updated service and its categories
+        // Load the categories with only id and name fields
+        $product->load(['categories' => function($query) {
+            $query->select('categories.id', 'categories.name');
+        }]);
+        
+        // Format the response to only include necessary fields
+        $formattedProduct = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'stock' => $product->stock,
+            'categories' => $product->categories->map(function($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name
+                ];
+            })
+        ];
+
+        // Return a success response with the updated product and its categories
         return response()->json([
             'message' => 'Categories synced successfully',
-            'product' => $product->load('categories')
+            'product' => $formattedProduct
         ]);
     }
 
+
     /**
-     * @OA\Patch(
-     *     path="/api/products/{product}/categories/{category}",
-     *     summary="Update the active status of a specific product-category relationship",
+     * @OA\Get(
+     *     path="/api/products-with-categories",
+     *     summary="Get all products with their associated categories",
      *     tags={"Product Categories"},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="ID of product",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Parameter(
-     *         name="category",
-     *         in="path",
-     *         description="ID of category",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"active"},
-     *             @OA\Property(
-     *                 property="active",
-     *                 type="integer",
-     *                 enum={0, 1},
-     *                 example=1,
-     *                 description="Status: 1 for active, 0 for inactive"
-     *             )
-     *         )
-     *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Status updated successfully",
+     *         description="List of products with their categories",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Status updated successfully"),
-     *             @OA\Property(
-     *                 property="product",
+     *             type="array",
+     *             @OA\Items(
      *                 type="object",
-     *                 ref="#/components/schemas/Product"
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Product Name"),
+     *                 @OA\Property(
+     *                     property="categories",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="name", type="string", example="Category Name")
+     *                     )
+     *                 )
      *             )
      *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Product not found or category not associated with product"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
      *     )
      * )
      * 
-     * API Endpoint: PATCH /api/products/{product}/categories/{category}
+     * API Endpoint: GET /api/products-with-categories
      */
-    public function updateStatus(Request $request, Product $product, Category $category)
+    public function productsWithCategories()
     {
-        $request->validate([
-            'active' => 'required|integer|in:0,1'
-        ]);
-
-        // Check if the relationship exists
-        if (!$product->categories()->where('category_id', $category->id)->exists()) {
-            return response()->json([
-                'message' => 'This product is not associated with the specified category'
-            ], 404);
-        }
-
-        $product->categories()->updateExistingPivot($category->id, [
-            'active' => $request->active
-        ]);
-
-        return response()->json([
-            'message' => 'Status updated successfully',
-            'product' => $product->load('categories')
-        ]);
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/api/products/{product}/categories/toggle",
-     *     summary="Toggle categories for a product (attach if not exists, detach if exists)",
-     *     tags={"Product Categories"},
-     *     @OA\Parameter(
-     *         name="product",
-     *         in="path",
-     *         description="ID of product",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"categories"},
-     *             @OA\Property(
-     *                 property="categories",
-     *                 type="array",
-     *                 @OA\Items(type="integer"),
-     *                 example={1, 2, 3}
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categories toggled successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Categories toggled successfully"),
-     *             @OA\Property(
-     *                 property="product",
-     *                 type="object",
-     *                 ref="#/components/schemas/Product"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Product not found"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
-     *     )
-     * )
-     * 
-     * API Endpoint: POST /api/products/{product}/categories/toggle
-     */
-    public function toggle(Request $request, Product $product)
-    {
-        $request->validate([
-            'categories' => 'required|array',
-            'categories.*' => 'exists:categories,id'
-        ]);
-
-        $categories = collect($request->categories)->mapWithKeys(function ($categoryId) {
-            return [$categoryId => ['active' => 1]];
+        // Get products with their categories but only select id and name fields
+        $products = Product::with(['categories' => function($query) {
+            $query->select(['categories.id', 'categories.name']);
+        }])->get(['id', 'name']);
+        
+        // Transform the data to include only what's needed
+        $formattedProducts = $products->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'categories' => $product->categories->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name
+                    ];
+                })
+            ];
         });
-
-        $product->categories()->toggle($categories);
-
-        return response()->json([
-            'message' => 'Categories toggled successfully',
-            'product' => $product->load('categories')
-        ]);
+        
+        return response()->json($formattedProducts);
+    }
+    
+    /**
+     * @OA\Get(
+     *     path="/api/product-categories",
+     *     summary="Get all categories that are associated with any products",
+     *     tags={"Product Categories"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of category names used by products",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="string", example="Category Name")
+     *         )
+     *     )
+     * )
+     * 
+     * API Endpoint: GET /api/product-categories
+     */
+    public function productCategories()
+    {
+        // Get all categories that are associated with at least one product
+        // Only select id and name fields
+        $categoriesWithProducts = Category::select(['id', 'name'])
+            ->whereHas('products')
+            ->get();
+        
+        // Extract just the names as a simple array
+        $categoryNames = $categoriesWithProducts->pluck('name');
+        
+        return response()->json($categoryNames);
     }
 }
