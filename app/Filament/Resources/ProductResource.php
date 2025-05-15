@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Collection;
+
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
@@ -54,6 +56,13 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('price')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('stock')->sortable()->searchable(),
+                Tables\Columns\IconColumn::make('active')
+                    ->boolean()
+                    ->label('Status')
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger'),
                 Tables\Columns\TextColumn::make('categories.name')
                     ->badge()
                     ->color('success')
@@ -86,16 +95,47 @@ class ProductResource extends Resource
                     ->label('Active Status')
                     ->placeholder('All Products')
                     ->trueLabel('Active Products')
-                    ->falseLabel('Inactive Products')
-                    ->boolean()
+                    ->falseLabel('Deleted Products')
+                    ->queries(
+                        true: fn (Builder $query): Builder => $query->where('active', 1),
+                        false: fn (Builder $query): Builder => $query->where('active', 0),
+                        blank: fn (Builder $query): Builder => $query
+                    )
                     ->default(true)
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('delete')
+                    ->label('Delete')
+                    ->color('danger')
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->action(function (Product $record) {
+                        $record->update(['active' => 0]);
+                    })
+                    ->visible(fn (Product $record): bool => $record->active == 1), 
+                Tables\Actions\Action::make('restore')
+                    ->label('Restore')
+                    ->color('success')
+                    ->icon('heroicon-o-arrow-uturn-up')
+                    ->requiresConfirmation()
+                    ->action(function (Product $record) {
+                        $record->update(['active' => 1]);
+                    })
+                    ->visible(fn (Product $record): bool => $record->active == 0),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('delete')
+                        ->label('Delete')
+                        ->color('danger')
+                        ->icon('heroicon-o-trash')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records) {
+                            $records->each(function ($record) {
+                                $record->update(['active' => 0]);
+                            });
+                        }),
                 ]),
             ]);
     }
