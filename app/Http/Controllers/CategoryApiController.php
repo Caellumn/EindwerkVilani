@@ -28,7 +28,7 @@ class CategoryApiController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Category Name"),
      *                 @OA\Property(property="active", type="integer", example=1)
      *             )
@@ -149,14 +149,14 @@ class CategoryApiController extends Controller
      *         in="path",
      *         description="ID of category to return",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Category details",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *             @OA\Property(property="name", type="string", example="Category Name"),
      *             @OA\Property(property="active", type="integer", example=1)
      *         )
@@ -201,7 +201,7 @@ class CategoryApiController extends Controller
      *         in="path",
      *         description="ID of category to update",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -216,7 +216,7 @@ class CategoryApiController extends Controller
      *         description="Category updated successfully",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *             @OA\Property(property="name", type="string", example="Updated Category Name"),
      *             @OA\Property(property="active", type="integer", example=1)
      *         )
@@ -290,7 +290,7 @@ class CategoryApiController extends Controller
      *         in="path",
      *         description="ID of category to deactivate",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=204,

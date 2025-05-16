@@ -154,7 +154,7 @@ class ServiceApiController extends Controller
      *         in="path",
      *         description="ID of service to return",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -186,7 +186,7 @@ class ServiceApiController extends Controller
      *         in="path",
      *         description="ID of service to update",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -242,7 +242,7 @@ class ServiceApiController extends Controller
      *         in="path",
      *         description="ID of service to delete",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,

@@ -24,7 +24,7 @@ class ProductCategoryApiController extends Controller
      *         in="path",
      *         description="ID of product",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -33,7 +33,7 @@ class ProductCategoryApiController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Category Name")
      *             )
      *         )
@@ -80,7 +80,7 @@ class ProductCategoryApiController extends Controller
      *         in="path",
      *         description="ID of product",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -91,8 +91,8 @@ class ProductCategoryApiController extends Controller
      *                 property="categories",
      *                 type="array",
      *                 description="Array of category IDs. Send an empty array [] to remove all categories.",
-     *                 @OA\Items(type="integer"),
-     *                 example={1, 2, 3}
+     *                 @OA\Items(type="string"),
+     *                 example={"123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"}
      *             )
      *         )
      *     ),
@@ -104,7 +104,7 @@ class ProductCategoryApiController extends Controller
      *             @OA\Property(
      *                 property="product",
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Product Name"),
      *                 @OA\Property(property="description", type="string", example="Product description"),
      *                 @OA\Property(property="price", type="number", format="float", example=99.99),
@@ -114,7 +114,7 @@ class ProductCategoryApiController extends Controller
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
-     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                         @OA\Property(property="name", type="string", example="Category Name")
      *                     )
      *                 )

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('category_service', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('category_id')->constrained();
-            $table->foreignId('service_id')->constrained();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('category_id')->constrained();
+            $table->foreignUuid('service_id')->constrained();
             $table->tinyInteger('active')->default(1);
             $table->timestamps();
         });

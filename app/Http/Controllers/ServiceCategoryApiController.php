@@ -21,7 +21,7 @@ class ServiceCategoryApiController extends Controller
      *         in="path",
      *         description="ID of service",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -30,7 +30,7 @@ class ServiceCategoryApiController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Category Name")
      *             )
      *         )
@@ -79,14 +79,14 @@ class ServiceCategoryApiController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Service Name"),
      *                 @OA\Property(
      *                     property="categories",
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
-     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                         @OA\Property(property="name", type="string", example="Category Name")
      *                     )
      *                 )
@@ -164,7 +164,7 @@ class ServiceCategoryApiController extends Controller
      *         in="path",
      *         description="ID of service",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -175,8 +175,8 @@ class ServiceCategoryApiController extends Controller
      *                 property="categories",
      *                 type="array",
      *                 description="Array of category IDs. Send an empty array [] to remove all categories.",
-     *                 @OA\Items(type="integer"),
-     *                 example={1, 2, 3}
+     *                 @OA\Items(type="string"),
+     *                 example={"123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"}
      *             )
      *         )
      *     ),
@@ -188,7 +188,7 @@ class ServiceCategoryApiController extends Controller
      *             @OA\Property(
      *                 property="service",
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                 @OA\Property(property="name", type="string", example="Service Name"),
      *                 @OA\Property(property="description", type="string", example="Service description"),
      *                 @OA\Property(property="hairlength", type="string", example="medium"),
@@ -199,7 +199,7 @@ class ServiceCategoryApiController extends Controller
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
-     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
      *                         @OA\Property(property="name", type="string", example="Category Name")
      *                     )
      *                 )

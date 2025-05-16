@@ -33,8 +33,8 @@
                                     "items": {
                                         "properties": {
                                             "id": {
-                                                "type": "integer",
-                                                "example": 1
+                                                "type": "string",
+                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                             },
                                             "name": {
                                                 "type": "string",
@@ -169,7 +169,7 @@
                         "description": "ID of category to return",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -181,8 +181,8 @@
                                 "schema": {
                                     "properties": {
                                         "id": {
-                                            "type": "integer",
-                                            "example": 1
+                                            "type": "string",
+                                            "example": "123e4567-e89b-12d3-a456-426614174000"
                                         },
                                         "name": {
                                             "type": "string",
@@ -230,7 +230,7 @@
                         "description": "ID of category to update",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -264,8 +264,8 @@
                                 "schema": {
                                     "properties": {
                                         "id": {
-                                            "type": "integer",
-                                            "example": 1
+                                            "type": "string",
+                                            "example": "123e4567-e89b-12d3-a456-426614174000"
                                         },
                                         "name": {
                                             "type": "string",
@@ -337,7 +337,7 @@
                         "description": "ID of category to deactivate",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -378,7 +378,7 @@
                         "description": "ID of product",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -392,8 +392,8 @@
                                     "items": {
                                         "properties": {
                                             "id": {
-                                                "type": "integer",
-                                                "example": 1
+                                                "type": "string",
+                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                             },
                                             "name": {
                                                 "type": "string",
@@ -439,7 +439,7 @@
                         "description": "ID of product",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -457,12 +457,11 @@
                                         "description": "Array of category IDs. Send an empty array [] to remove all categories.",
                                         "type": "array",
                                         "items": {
-                                            "type": "integer"
+                                            "type": "string"
                                         },
                                         "example": [
-                                            1,
-                                            2,
-                                            3
+                                            "123e4567-e89b-12d3-a456-426614174000",
+                                            "123e4567-e89b-12d3-a456-426614174001"
                                         ]
                                     }
                                 },
@@ -485,8 +484,8 @@
                                         "product": {
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer",
-                                                    "example": 1
+                                                    "type": "string",
+                                                    "example": "123e4567-e89b-12d3-a456-426614174000"
                                                 },
                                                 "name": {
                                                     "type": "string",
@@ -510,8 +509,8 @@
                                                     "items": {
                                                         "properties": {
                                                             "id": {
-                                                                "type": "integer",
-                                                                "example": 1
+                                                                "type": "string",
+                                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                                             },
                                                             "name": {
                                                                 "type": "string",
@@ -780,7 +779,7 @@
                         "description": "ID of product to return",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -814,7 +813,7 @@
                         "description": "ID of product to update",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -880,7 +879,7 @@
                         "description": "ID of product to delete",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1086,7 +1085,7 @@
                         "description": "ID of service to return",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1120,7 +1119,7 @@
                         "description": "ID of service to update",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1189,7 +1188,7 @@
                         "description": "ID of service to delete",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1247,7 +1246,7 @@
                         "description": "ID of service",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1261,8 +1260,8 @@
                                     "items": {
                                         "properties": {
                                             "id": {
-                                                "type": "integer",
-                                                "example": 1
+                                                "type": "string",
+                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                             },
                                             "name": {
                                                 "type": "string",
@@ -1311,8 +1310,8 @@
                                     "items": {
                                         "properties": {
                                             "id": {
-                                                "type": "integer",
-                                                "example": 1
+                                                "type": "string",
+                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                             },
                                             "name": {
                                                 "type": "string",
@@ -1323,8 +1322,8 @@
                                                 "items": {
                                                     "properties": {
                                                         "id": {
-                                                            "type": "integer",
-                                                            "example": 1
+                                                            "type": "string",
+                                                            "example": "123e4567-e89b-12d3-a456-426614174000"
                                                         },
                                                         "name": {
                                                             "type": "string",
@@ -1384,7 +1383,7 @@
                         "description": "ID of service",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1402,12 +1401,11 @@
                                         "description": "Array of category IDs. Send an empty array [] to remove all categories.",
                                         "type": "array",
                                         "items": {
-                                            "type": "integer"
+                                            "type": "string"
                                         },
                                         "example": [
-                                            1,
-                                            2,
-                                            3
+                                            "123e4567-e89b-12d3-a456-426614174000",
+                                            "123e4567-e89b-12d3-a456-426614174001"
                                         ]
                                     }
                                 },
@@ -1430,8 +1428,8 @@
                                         "service": {
                                             "properties": {
                                                 "id": {
-                                                    "type": "integer",
-                                                    "example": 1
+                                                    "type": "string",
+                                                    "example": "123e4567-e89b-12d3-a456-426614174000"
                                                 },
                                                 "name": {
                                                     "type": "string",
@@ -1459,8 +1457,8 @@
                                                     "items": {
                                                         "properties": {
                                                             "id": {
-                                                                "type": "integer",
-                                                                "example": 1
+                                                                "type": "string",
+                                                                "example": "123e4567-e89b-12d3-a456-426614174000"
                                                             },
                                                             "name": {
                                                                 "type": "string",
@@ -1536,9 +1534,8 @@
             "Product": {
                 "properties": {
                     "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 1
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
                     },
                     "name": {
                         "type": "string",
@@ -1580,9 +1577,8 @@
             "Service": {
                 "properties": {
                     "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 1
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
                     },
                     "name": {
                         "type": "string",
@@ -1618,9 +1614,8 @@
             "Category": {
                 "properties": {
                     "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "example": 1
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
                     },
                     "name": {
                         "description": "Category name (required)",
@@ -1647,12 +1642,12 @@
                     "pivot": {
                         "properties": {
                             "product_id": {
-                                "type": "integer",
-                                "example": 1
+                                "type": "string",
+                                "example": "123e4567-e89b-12d3-a456-426614174000"
                             },
                             "category_id": {
-                                "type": "integer",
-                                "example": 1
+                                "type": "string",
+                                "example": "123e4567-e89b-12d3-a456-426614174000"
                             },
                             "active": {
                                 "description": "1 for active relationship, 0 for inactive",

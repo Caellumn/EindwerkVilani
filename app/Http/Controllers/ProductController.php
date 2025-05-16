@@ -103,7 +103,7 @@ class ProductController extends Controller
      *         in="path",
      *         description="ID of product to return",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -135,7 +135,7 @@ class ProductController extends Controller
      *         in="path",
      *         description="ID of product to update",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
@@ -184,7 +184,7 @@ class ProductController extends Controller
      *         in="path",
      *         description="ID of product to delete",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string")
      *     ),
      *     @OA\Response(
      *         response=200,

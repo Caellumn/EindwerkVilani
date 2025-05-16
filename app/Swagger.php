@@ -36,7 +36,7 @@ use OpenApi\Annotations as OA;
  * 
  * @OA\Schema(
  *     schema="Product",
- *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *     @OA\Property(property="name", type="string", example="Shampoo"),
  *     @OA\Property(property="description", type="string", example="Something to wash your hair"),
  *     @OA\Property(property="price", type="number", format="float", example=9.99),
@@ -49,7 +49,7 @@ use OpenApi\Annotations as OA;
  * 
  * @OA\Schema(
  *     schema="Service",
- *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *     @OA\Property(property="name", type="string", example="Haircut"),
  *     @OA\Property(property="description", type="string", example="Basic haircut service"),
  *     @OA\Property(property="duration_phase_1", type="integer", example=30),
@@ -61,7 +61,7 @@ use OpenApi\Annotations as OA;
  * 
  * @OA\Schema(
  *     schema="Category",
- *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *     @OA\Property(property="name", type="string", example="Hair Care", description="Category name (required)"),
  *     @OA\Property(property="description", type="string", example="Hair care products"),
  *     @OA\Property(property="active", type="integer", example=1, description="Category status: 1 for active, 0 for inactive/deleted (optional, default: 1)"),
@@ -70,8 +70,8 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(
  *         property="pivot",
  *         type="object",
- *         @OA\Property(property="product_id", type="integer", example=1),
- *         @OA\Property(property="category_id", type="integer", example=1),
+ *         @OA\Property(property="product_id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
+ *         @OA\Property(property="category_id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *         @OA\Property(property="active", type="integer", example=1, description="1 for active relationship, 0 for inactive")
  *     )
  * )
