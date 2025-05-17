@@ -39,6 +39,11 @@ use OpenApi\Annotations as OA;
  *     description="User management endpoints"
  * )
  * 
+ * @OA\Tag(
+ *     name="Bookings",
+ *     description="Booking management endpoints"
+ * )
+ * 
  * @OA\Schema(
  *     schema="Product",
  *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
@@ -93,6 +98,54 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="Booking",
+ *     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z"),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+ *     @OA\Property(property="remarks", type="string", example="First time customer, prefers short haircut"),
+ *     @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="pending"),
+ *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *     @OA\Property(
+ *         property="user",
+ *         type="object",
+ *         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *         @OA\Property(property="name", type="string", example="John Doe"),
+ *         @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+ *         @OA\Property(property="telephone", type="string", example="+31612345678")
+ *     ),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingRequest",
+ *     required={"date", "name", "email", "telephone", "gender", "remarks", "status", "user_id"},
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking date and time (required)"),
+ *     @OA\Property(property="name", type="string", example="John Doe", description="Customer name (required)"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Customer email (required)"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678", description="Customer telephone (required)"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="Customer gender (required)"),
+ *     @OA\Property(property="remarks", type="string", example="First time customer, prefers short haircut", description="Additional remarks (required)"),
+ *     @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="pending", description="Booking status (required)"),
+ *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="User ID (required)")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingUpdateRequest",
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking date and time"),
+ *     @OA\Property(property="name", type="string", example="John Doe", description="Customer name"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Customer email"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678", description="Customer telephone"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="Customer gender"),
+ *     @OA\Property(property="remarks", type="string", example="First time customer, prefers short haircut", description="Additional remarks"),
+ *     @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="confirmed", description="Booking status"),
+ *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="User ID")
  * )
  *
  * @OA\Schema(

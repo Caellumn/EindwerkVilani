@@ -5,10 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceApiController;
 use App\Http\Controllers\ServiceCategoryApiController;
-use App\Http\Controllers\ServiceWithHairlengthApiController;
 use App\Http\Controllers\ProductCategoryApiController;
 use App\Http\Controllers\CategoryApiController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BookingController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -48,4 +48,7 @@ Route::get('/service-categories', [ServiceCategoryApiController::class, 'service
 
 // User Routes
 Route::apiResource('/users', UserController::class)->only(['index', 'show', 'store', 'destroy','update']);
+
+// Booking Routes
+Route::apiResource('/bookings', BookingController::class)->only(['index', 'show', 'store', 'destroy','update']);
 

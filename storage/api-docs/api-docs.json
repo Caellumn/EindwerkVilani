@@ -15,6 +15,406 @@
         }
     ],
     "paths": {
+        "/api/bookings": {
+            "get": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Get a list of bookings with optional filters",
+                "description": "Returns a list of bookings. Can filter by date (year, month, day), name, gender, and status",
+                "operationId": "getBookingsList",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "description": "Filter bookings by year",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2023
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "description": "Filter bookings by month (1-12)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 6
+                        }
+                    },
+                    {
+                        "name": "day",
+                        "in": "query",
+                        "description": "Filter bookings by day of month (1-31)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filter bookings by customer name (partial match)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "John"
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "description": "Filter bookings by customer gender (male or female only)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "male",
+                                "female"
+                            ],
+                            "example": "male"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter bookings by status (pending, confirmed, cancelled, or completed only)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "confirmed",
+                                "cancelled",
+                                "completed"
+                            ],
+                            "example": "pending"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Booking"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error for query parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "description": "Error message describing the validation failure",
+                                            "type": "string",
+                                            "example": "status needs to be pending, confirmed, cancelled or completed"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "examples": {
+                                    "status_error": {
+                                        "summary": "Invalid status parameter",
+                                        "value": {
+                                            "error": "status needs to be pending, confirmed, cancelled or completed or gender needs to be male or female"
+                                        }
+                                    },
+                                    "gender_error": {
+                                        "summary": "Invalid gender parameter",
+                                        "value": {
+                                            "error": "gender needs to be male or female"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Create a new booking",
+                "description": "Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'.",
+                "operationId": "createBooking",
+                "requestBody": {
+                    "description": "Booking data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Booking created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Booking"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "date": [
+                                                    "The date field is required."
+                                                ],
+                                                "gender": [
+                                                    "The selected gender is invalid."
+                                                ],
+                                                "email": [
+                                                    "The email field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while creating the booking."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings/{id}": {
+            "get": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Get booking by ID",
+                "description": "Returns a single booking by ID with associated user details",
+                "operationId": "getBookingById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the booking to return",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Booking"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Booking not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Cancel a booking",
+                "description": "Cancels a booking by setting its status to 'cancelled'",
+                "operationId": "cancelBooking",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the booking to cancel",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Booking cancelled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Booking cancelled successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Booking not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Update an existing booking",
+                "description": "Updates a booking with the provided information. At least one field must be provided.",
+                "operationId": "updateBooking",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the booking to update",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Booking update data - at least one field must be provided",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Booking updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Booking"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking or User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Booking not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "At least one field to update must be provided"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "fields": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Please include at least one of: date, name, email, telephone, gender, remarks, status"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -2176,6 +2576,218 @@
                 },
                 "type": "object"
             },
+            "Booking": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-06-15T14:30:00Z"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john.doe@example.com"
+                    },
+                    "telephone": {
+                        "type": "string",
+                        "example": "+31612345678"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "male",
+                            "female"
+                        ],
+                        "example": "male"
+                    },
+                    "remarks": {
+                        "type": "string",
+                        "example": "First time customer, prefers short haircut"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "completed"
+                        ],
+                        "example": "pending"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "user": {
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "example": "123e4567-e89b-12d3-a456-426614174000"
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "John Doe"
+                            },
+                            "email": {
+                                "type": "string",
+                                "format": "email",
+                                "example": "john.doe@example.com"
+                            },
+                            "telephone": {
+                                "type": "string",
+                                "example": "+31612345678"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingRequest": {
+                "required": [
+                    "date",
+                    "name",
+                    "email",
+                    "telephone",
+                    "gender",
+                    "remarks",
+                    "status",
+                    "user_id"
+                ],
+                "properties": {
+                    "date": {
+                        "description": "Booking date and time (required)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-06-15T14:30:00Z"
+                    },
+                    "name": {
+                        "description": "Customer name (required)",
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "description": "Customer email (required)",
+                        "type": "string",
+                        "format": "email",
+                        "example": "john.doe@example.com"
+                    },
+                    "telephone": {
+                        "description": "Customer telephone (required)",
+                        "type": "string",
+                        "example": "+31612345678"
+                    },
+                    "gender": {
+                        "description": "Customer gender (required)",
+                        "type": "string",
+                        "enum": [
+                            "male",
+                            "female"
+                        ],
+                        "example": "male"
+                    },
+                    "remarks": {
+                        "description": "Additional remarks (required)",
+                        "type": "string",
+                        "example": "First time customer, prefers short haircut"
+                    },
+                    "status": {
+                        "description": "Booking status (required)",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "completed"
+                        ],
+                        "example": "pending"
+                    },
+                    "user_id": {
+                        "description": "User ID (required)",
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingUpdateRequest": {
+                "properties": {
+                    "date": {
+                        "description": "Booking date and time",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-06-15T14:30:00Z"
+                    },
+                    "name": {
+                        "description": "Customer name",
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "description": "Customer email",
+                        "type": "string",
+                        "format": "email",
+                        "example": "john.doe@example.com"
+                    },
+                    "telephone": {
+                        "description": "Customer telephone",
+                        "type": "string",
+                        "example": "+31612345678"
+                    },
+                    "gender": {
+                        "description": "Customer gender",
+                        "type": "string",
+                        "enum": [
+                            "male",
+                            "female"
+                        ],
+                        "example": "male"
+                    },
+                    "remarks": {
+                        "description": "Additional remarks",
+                        "type": "string",
+                        "example": "First time customer, prefers short haircut"
+                    },
+                    "status": {
+                        "description": "Booking status",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "completed"
+                        ],
+                        "example": "confirmed"
+                    },
+                    "user_id": {
+                        "description": "User ID",
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    }
+                },
+                "type": "object"
+            },
             "UserRequest": {
                 "required": [
                     "name",
@@ -2298,6 +2910,10 @@
         {
             "name": "Users",
             "description": "User management endpoints"
+        },
+        {
+            "name": "Bookings",
+            "description": "Booking management endpoints"
         },
         {
             "name": "Service Categories",
