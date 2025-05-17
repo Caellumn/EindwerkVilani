@@ -34,6 +34,11 @@ use OpenApi\Annotations as OA;
  *     description="API Endpoints for managing product categories relationships"
  * )
  * 
+ * @OA\Tag(
+ *     name="Users",
+ *     description="User management endpoints"
+ * )
+ * 
  * @OA\Schema(
  *     schema="Product",
  *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
@@ -74,6 +79,45 @@ use OpenApi\Annotations as OA;
  *         @OA\Property(property="category_id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *         @OA\Property(property="active", type="integer", example=1, description="1 for active relationship, 0 for inactive")
  *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="User",
+ *     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678"),
+ *     @OA\Property(property="role", type="string", enum={"admin", "user"}, example="user"),
+ *     @OA\Property(property="status", type="integer", example=1, description="1 for active user, 0 for inactive/deleted"),
+ *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="UserRequest",
+ *     required={"name", "email", "gender", "telephone", "password"},
+ *     @OA\Property(property="name", type="string", example="John Doe", description="User's full name (required)"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="User's email address (required, must be unique)"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="User's gender (required)"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678", description="User's telephone number (required)"),
+ *     @OA\Property(property="password", type="string", format="password", example="password123", description="User's password (required, min 8 characters)"),
+ *     @OA\Property(property="role", type="string", enum={"admin", "user"}, example="user", description="User's role (optional, default: user)")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="UserUpdateRequest",
+ *     @OA\Property(property="name", type="string", example="John Doe", description="User's full name (optional)"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="User's email address (optional, must be unique)"),
+ *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="User's gender (optional)"),
+ *     @OA\Property(property="telephone", type="string", example="+31612345678", description="User's telephone number (optional)"),
+ *     @OA\Property(property="role", type="string", enum={"admin", "user"}, example="user", description="User's role (optional)")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="Error",
+ *     @OA\Property(property="error", type="string", example="User not found")
  * )
  */
 class Swagger

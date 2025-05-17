@@ -8,6 +8,7 @@ use App\Http\Controllers\ServiceCategoryApiController;
 use App\Http\Controllers\ServiceWithHairlengthApiController;
 use App\Http\Controllers\ProductCategoryApiController;
 use App\Http\Controllers\CategoryApiController;
+use App\Http\Controllers\UserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -44,4 +45,7 @@ Route::get('/services/{serviceId}/categories', [ServiceCategoryApiController::cl
 Route::put('/services/{serviceId}/categories/sync', [ServiceCategoryApiController::class, 'sync']);
 Route::get('/services-with-categories', [ServiceCategoryApiController::class, 'servicesWithCategories']);
 Route::get('/service-categories', [ServiceCategoryApiController::class, 'serviceCategories']);
+
+// User Routes
+Route::apiResource('/users', UserController::class)->only(['index', 'show', 'store', 'destroy','update']);
 
