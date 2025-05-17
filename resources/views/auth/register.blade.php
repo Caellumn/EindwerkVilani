@@ -20,6 +20,20 @@
             </div>
 
             <div class="mt-4">
+                <x-label for="telephone" value="{{ __('Telephone') }}" />
+                <x-input id="telephone" class="block mt-1 w-full" type="tel" name="telephone" :value="old('telephone')" required autocomplete="tel" />
+            </div>
+
+            <div class="mt-4">
+                <x-label for="gender" value="{{ __('Gender') }}" />
+                <select id="gender" name="gender" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm block mt-1 w-full" required>
+                    <option value="">Select Gender</option>
+                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                </select>
+            </div>
+
+            <div class="mt-4">
                 <x-label for="password" value="{{ __('Password') }}" />
                 <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             </div>
