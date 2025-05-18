@@ -37,4 +37,9 @@ class Product extends Model
             ->using(CategoryProduct::class)
             ->wherePivot('active', 1);
     }
+
+    public function bookings()
+    {
+        return $this->belongsToMany(Booking::class);
+    }
 }

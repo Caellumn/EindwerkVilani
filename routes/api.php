@@ -9,6 +9,8 @@ use App\Http\Controllers\ProductCategoryApiController;
 use App\Http\Controllers\CategoryApiController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingHasServicesController;
+use App\Http\Controllers\BookingHasProductsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -51,4 +53,17 @@ Route::apiResource('/users', UserController::class)->only(['index', 'show', 'sto
 
 // Booking Routes
 Route::apiResource('/bookings', BookingController::class)->only(['index', 'show', 'store', 'destroy','update']);
+
+// Booking Has Products Routes
+Route::get('/bookings/{bookingId}/products', [BookingHasProductsController::class, 'index']);
+Route::put('/bookings/{bookingId}/products/sync', [BookingHasProductsController::class, 'syncProducts']);
+Route::get('/bookings-with-products', [BookingHasProductsController::class, 'bookingsWithProducts']);
+Route::get('/booking-products', [BookingHasProductsController::class, 'bookingProducts']);
+
+// Booking Has services Routes
+Route::get('/bookings/{bookingId}/services', [BookingHasServicesController::class, 'index']);
+Route::put('/bookings/{bookingId}/services/sync', [BookingHasServicesController::class, 'syncServices']);
+Route::get('/bookings-with-services', [BookingHasServicesController::class, 'bookingsWithServices']);
+Route::get('/booking-services', [BookingHasServicesController::class, 'bookingServices']);
+
 

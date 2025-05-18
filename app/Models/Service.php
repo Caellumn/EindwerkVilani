@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\BookingService;
 
 class Service extends Model
 {
@@ -42,5 +43,13 @@ class Service extends Model
             ->withTimestamps()
             ->using(CategoryService::class)
             ->where('category_service.active', 1);
+    }
+
+    public function bookings()
+    {
+        return $this->belongsToMany(Booking::class)
+            ->withTimestamps()
+            ->using(BookingService::class)
+            ->where('booking_service.active', 1);
     }
 }
