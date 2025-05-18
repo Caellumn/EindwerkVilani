@@ -19,11 +19,13 @@ class Booking extends Model
 
     public function services()
     {
-        return $this->belongsToMany(Service::class);
+        return $this->belongsToMany(Service::class)
+                    ->using(BookingService::class);
     }
 
     public function products()
     {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class)
+                    ->using(BookingProduct::class);
     }
 }

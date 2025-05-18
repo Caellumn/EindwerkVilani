@@ -10,7 +10,37 @@ use Illuminate\Http\Request;
 class BookingHasProductsController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of products for a specific booking.
+     * 
+     * @OA\Get(
+     *     path="/api/bookings/{bookingId}/products",
+     *     tags={"Bookings", "Products"},
+     *     summary="Get products for a specific booking",
+     *     description="Returns all products associated with the specified booking",
+     *     @OA\Parameter(
+     *         name="bookingId",
+     *         in="path",
+     *         description="ID of the booking",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of products",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Product Name")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Booking not found",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     )
+     * )
      */
     public function index(Request $request, $bookingId)
     {
@@ -34,9 +64,35 @@ class BookingHasProductsController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display all bookings with their associated products.
+     * 
+     * @OA\Get(
+     *     path="/api/bookings-with-products",
+     *     tags={"Bookings", "Products"},
+     *     summary="Get all bookings with their products",
+     *     description="Returns all bookings with their associated products",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of bookings with their products",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Booking Name"),
+     *                 @OA\Property(
+     *                     property="products",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="name", type="string", example="Product Name")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     )
+     * )
      */
-    public function show()
+    public function bookingsWithProducts()
     {
         // Get bookings with their products but only select id and name fields
         $bookings = Booking::with(['products' => function($query) {
@@ -61,14 +117,47 @@ class BookingHasProductsController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the products associated with a booking.
+     * 
+     * @OA\Put(
+     *     path="/api/bookings/{bookingId}/products/sync",
+     *     tags={"Bookings", "Products"},
+     *     summary="Sync products for a booking",
+     *     description="Update the products associated with a specific booking",
+     *     @OA\Parameter(
+     *         name="bookingId",
+     *         in="path",
+     *         description="ID of the booking",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BookingProductRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Products synced successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/BookingProductResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Booking not found",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error or invalid product IDs",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
-    public function syncProducts(Request $request, Booking $bookingId)
+    public function syncProducts(Request $request, $bookingId)
     {
-         // Find the product by ID
+         // Find the booking by ID
          $booking = Booking::find($bookingId);
         
-         // Return 404 if product not found
+         // Return 404 if booking not found
          if (!$booking) {
              return response()->json([
                  'message' => 'Booking not found'
@@ -107,7 +196,7 @@ class BookingHasProductsController extends Controller
                  return response()->json([
                      'message' => 'One or more product IDs are invalid',
                      'errors' => $validator->errors()
-                 ], 404);
+                 ], 422);
              }
              
              // Convert the array of product IDs into a collection
@@ -148,7 +237,25 @@ class BookingHasProductsController extends Controller
          ]);
     }
 
-    public function bookingServices()
+    /**
+     * Get all products that are associated with at least one booking.
+     * 
+     * @OA\Get(
+     *     path="/api/booking-products",
+     *     tags={"Bookings", "Products"},
+     *     summary="Get all products used in bookings",
+     *     description="Returns all products that are associated with at least one booking",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of product names",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="string", example="Product Name")
+     *         )
+     *     )
+     * )
+     */
+    public function bookingProducts()
     {
         // Get all products that are associated with at least one booking
         // Only select id and name fields

@@ -49,7 +49,6 @@ class Service extends Model
     {
         return $this->belongsToMany(Booking::class)
             ->withTimestamps()
-            ->using(BookingService::class)
-            ->where('booking_service.active', 1);
+            ->using(BookingService::class);
     }
 }

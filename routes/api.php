@@ -56,14 +56,14 @@ Route::apiResource('/bookings', BookingController::class)->only(['index', 'show'
 
 // Booking Has Products Routes
 Route::get('/bookings/{bookingId}/products', [BookingHasProductsController::class, 'index']);
-Route::put('/bookings/{bookingId}/products/sync', [BookingHasProductsController::class, 'syncProducts']);
 Route::get('/bookings-with-products', [BookingHasProductsController::class, 'bookingsWithProducts']);
+Route::put('/bookings/{bookingId}/products/sync', [BookingHasProductsController::class, 'syncProducts']);
 Route::get('/booking-products', [BookingHasProductsController::class, 'bookingProducts']);
 
 // Booking Has services Routes
 Route::get('/bookings/{bookingId}/services', [BookingHasServicesController::class, 'index']);
-Route::put('/bookings/{bookingId}/services/sync', [BookingHasServicesController::class, 'syncServices']);
 Route::get('/bookings-with-services', [BookingHasServicesController::class, 'bookingsWithServices']);
+Route::put('/bookings/{bookingId}/services/sync', [BookingHasServicesController::class, 'syncServices']);
 Route::get('/booking-services', [BookingHasServicesController::class, 'bookingServices']);
 
 

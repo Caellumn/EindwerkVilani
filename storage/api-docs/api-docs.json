@@ -15,6 +15,406 @@
         }
     ],
     "paths": {
+        "/api/bookings/{bookingId}/products": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Products"
+                ],
+                "summary": "Get products for a specific booking",
+                "description": "Returns all products associated with the specified booking",
+                "operationId": "87eb7e9492f621f89b4eeca32cd62751",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "description": "ID of the booking",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Product Name"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings-with-products": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Products"
+                ],
+                "summary": "Get all bookings with their products",
+                "description": "Returns all bookings with their associated products",
+                "operationId": "59d2dd57cd32a502c50fe7fe7c73fd52",
+                "responses": {
+                    "200": {
+                        "description": "List of bookings with their products",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Booking Name"
+                                            },
+                                            "products": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Product Name"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings/{bookingId}/products/sync": {
+            "put": {
+                "tags": [
+                    "Bookings",
+                    "Products"
+                ],
+                "summary": "Sync products for a booking",
+                "description": "Update the products associated with a specific booking",
+                "operationId": "5efe2b0b1cca61b4af881d74f12b525f",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "description": "ID of the booking",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingProductRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Products synced successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingProductResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or invalid product IDs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/booking-products": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Products"
+                ],
+                "summary": "Get all products used in bookings",
+                "description": "Returns all products that are associated with at least one booking",
+                "operationId": "cf0d6302c45a63d7a2e0721ecba41c0f",
+                "responses": {
+                    "200": {
+                        "description": "List of product names",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "Product Name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings/{bookingId}/services": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Services"
+                ],
+                "summary": "Get services for a specific booking",
+                "description": "Returns all services associated with the specified booking",
+                "operationId": "0db4cbf31b043481338c1a2ab476cc76",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "description": "ID of the booking",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of services",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Service Name"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings-with-services": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Services"
+                ],
+                "summary": "Get all bookings with their services",
+                "description": "Returns all bookings with their associated services",
+                "operationId": "94be36a7de2a0f9752c2e10c36ae0e3f",
+                "responses": {
+                    "200": {
+                        "description": "List of bookings with their services",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Booking Name"
+                                            },
+                                            "services": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Service Name"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bookings/{bookingId}/services/sync": {
+            "put": {
+                "tags": [
+                    "Bookings",
+                    "Services"
+                ],
+                "summary": "Sync services for a booking",
+                "description": "Update the services associated with a specific booking",
+                "operationId": "5081368dc302291c4e556f70ac03bd47",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "description": "ID of the booking",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingServiceRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Services synced successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingServiceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or invalid service IDs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/booking-services": {
+            "get": {
+                "tags": [
+                    "Bookings",
+                    "Services"
+                ],
+                "summary": "Get all services used in bookings",
+                "description": "Returns all services that are associated with at least one booking",
+                "operationId": "8a31deee8d49d9d7aac3b6b62a860928",
+                "responses": {
+                    "200": {
+                        "description": "List of service names",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "Service Name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/bookings": {
             "get": {
                 "tags": [
@@ -2658,6 +3058,180 @@
                     "updated_at": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingWithProducts": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "products": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "example": "Product Name"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BookingWithServices": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "services": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "example": "Service Name"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BookingProductRequest": {
+                "required": [
+                    "products"
+                ],
+                "properties": {
+                    "products": {
+                        "description": "Array of product IDs to associate with the booking",
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BookingServiceRequest": {
+                "required": [
+                    "services"
+                ],
+                "properties": {
+                    "services": {
+                        "description": "Array of service IDs to associate with the booking",
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BookingProductResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Products synced successfully"
+                    },
+                    "booking": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "products": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Product Name"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingServiceResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Services synced successfully"
+                    },
+                    "booking": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "services": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Service Name"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "message": {
+                        "description": "Error message describing the validation failure",
+                        "type": "string",
+                        "example": "The products field is required"
+                    },
+                    "errors": {
+                        "description": "Detailed validation errors",
+                        "type": "object",
+                        "example": {
+                            "products": [
+                                "The products field is required"
+                            ],
+                            "products.0": [
+                                "The selected products.0 is invalid."
+                            ]
+                        }
                     }
                 },
                 "type": "object"

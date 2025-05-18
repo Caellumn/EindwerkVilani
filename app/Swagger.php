@@ -5,18 +5,27 @@ namespace App;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Info(
- *     title="Kapsalon Vilani API",
- *     version="1.0.0",
- *     description="API for managing a hair salon's services, products, and appointments",
- *     @OA\Contact(
- *         email="info@kapsalonvilani.com"
- *     )
- * )
- * 
- * @OA\Server(
- *     url="/api",
- *     description="API Server"
+ * @OA\OpenApi(
+ *     @OA\Info(
+ *         title="Kapsalon Vilani API",
+ *         version="1.0.0",
+ *         description="API for managing a hair salon's services, products, and appointments",
+ *         @OA\Contact(
+ *             email="info@kapsalonvilani.com"
+ *         )
+ *     ),
+ *     @OA\Server(
+ *         url="/api",
+ *         description="API Server"
+ *     ),
+ *     @OA\PathItem(path="/api/bookings/{bookingId}/products"),
+ *     @OA\PathItem(path="/api/bookings-with-products"),
+ *     @OA\PathItem(path="/api/bookings/{bookingId}/products/sync"),
+ *     @OA\PathItem(path="/api/booking-products"),
+ *     @OA\PathItem(path="/api/bookings/{bookingId}/services"),
+ *     @OA\PathItem(path="/api/bookings-with-services"),
+ *     @OA\PathItem(path="/api/bookings/{bookingId}/services/sync"),
+ *     @OA\PathItem(path="/api/booking-services")
  * )
  * 
  * @OA\Tag(
@@ -121,6 +130,109 @@ use OpenApi\Annotations as OA;
  *     ),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingWithProducts",
+ *     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *     @OA\Property(
+ *         property="products",
+ *         type="array",
+ *         @OA\Items(
+ *             @OA\Property(property="id", type="integer", example=1),
+ *             @OA\Property(property="name", type="string", example="Product Name")
+ *         )
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingWithServices",
+ *     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+ *     @OA\Property(
+ *         property="services",
+ *         type="array",
+ *         @OA\Items(
+ *             @OA\Property(property="id", type="integer", example=1),
+ *             @OA\Property(property="name", type="string", example="Service Name")
+ *         )
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingProductRequest",
+ *     required={"products"},
+ *     @OA\Property(
+ *         property="products",
+ *         type="array",
+ *         description="Array of product IDs to associate with the booking",
+ *         @OA\Items(type="integer", example=1)
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingServiceRequest",
+ *     required={"services"},
+ *     @OA\Property(
+ *         property="services",
+ *         type="array",
+ *         description="Array of service IDs to associate with the booking",
+ *         @OA\Items(type="integer", example=1)
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingProductResponse",
+ *     @OA\Property(property="message", type="string", example="Products synced successfully"),
+ *     @OA\Property(
+ *         property="booking",
+ *         type="object",
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(
+ *             property="products",
+ *             type="array",
+ *             @OA\Items(
+ *                 @OA\Property(property="id", type="integer", example=1),
+ *                 @OA\Property(property="name", type="string", example="Product Name")
+ *             )
+ *         )
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingServiceResponse",
+ *     @OA\Property(property="message", type="string", example="Services synced successfully"),
+ *     @OA\Property(
+ *         property="booking",
+ *         type="object",
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(
+ *             property="services",
+ *             type="array",
+ *             @OA\Items(
+ *                 @OA\Property(property="id", type="integer", example=1),
+ *                 @OA\Property(property="name", type="string", example="Service Name")
+ *             )
+ *         )
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ValidationError",
+ *     @OA\Property(
+ *         property="message", 
+ *         type="string", 
+ *         example="The products field is required",
+ *         description="Error message describing the validation failure"
+ *     ),
+ *     @OA\Property(
+ *         property="errors",
+ *         type="object",
+ *         description="Detailed validation errors",
+ *         example={
+ *             "products": {"The products field is required"},
+ *             "products.0": {"The selected products.0 is invalid."}
+ *         }
+ *     )
  * )
  *
  * @OA\Schema(
