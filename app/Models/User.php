@@ -88,9 +88,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     public function canAccessPanel(Panel $panel): bool
     {
-        if(str_ends_with($this->email, '@gmail.com')){
-            return true;
-        }
-        return false;
+        return true;
     }
 }
