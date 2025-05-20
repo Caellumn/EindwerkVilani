@@ -88,26 +88,26 @@ Route::put('/bookings/{bookingId}/services/sync', [BookingHasServicesController:
 Route::group(['middleware' => 'auth:sanctum'], function () {
 
     //products routes behind middleware
-    Route::apiResource('/products', ProductController::class)->only(['store', 'destroy','update'])->middleware(AdminOnly::class);
+    Route::apiResource('/products', ProductController::class)->only(['store', 'destroy','update'])->middleware('admin');
 
     //services routes behind middleware
-    Route::apiResource('/services', ServiceApiController::class)->only([ 'store', 'destroy','update'])->middleware(AdminOnly::class);
+    Route::apiResource('/services', ServiceApiController::class)->only([ 'store', 'destroy','update'])->middleware('admin');
 
     // users routes behind middleware
-    Route::get('/users', [UserController::class, 'index'])->middleware(AdminOnly::class);
-    Route::apiResource('/users', UserController::class)->except(['index'])->only(['show', 'destroy', 'update'])->middleware(AdminOnly::class);
+    Route::get('/users', [UserController::class, 'index'])->middleware('admin');
+    Route::apiResource('/users', UserController::class)->except(['index'])->only(['show', 'destroy', 'update'])->middleware('admin');
 
     //categories routes behind middleware
-    Route::put('/categories/{categoryId}', [CategoryApiController::class, 'update'])->middleware(AdminOnly::class);
-    Route::delete('/categories/{categoryId}', [CategoryApiController::class, 'destroy'])->middleware(AdminOnly::class);
-    Route::apiResource('/categories', CategoryApiController::class)->only(['store'])->middleware(AdminOnly::class);
+    Route::put('/categories/{categoryId}', [CategoryApiController::class, 'update'])->middleware('admin');
+    Route::delete('/categories/{categoryId}', [CategoryApiController::class, 'destroy'])->middleware('admin');
+    Route::apiResource('/categories', CategoryApiController::class)->only(['store'])->middleware('admin');
 
     //productscategories routes behind middleware
-    Route::put('/products/{productId}/categories/sync', [ProductCategoryApiController::class, 'sync'])->middleware(AdminOnly::class);
+    Route::put('/products/{productId}/categories/sync', [ProductCategoryApiController::class, 'sync'])->middleware('admin');
 
     // bookings routes behind middleware
-    Route::get('/bookings', [BookingController::class, 'index'])->middleware(AdminOnly::class);
-    Route::apiResource('/bookings', BookingController::class)->only(['show', 'destroy', 'update'])->middleware(AdminOnly::class);
+    Route::get('/bookings', [BookingController::class, 'index'])->middleware('admin');
+    Route::apiResource('/bookings', BookingController::class)->only(['show', 'destroy', 'update'])->middleware('admin');
 
 
     // Booking Has Products routes behind middleware
