@@ -106,7 +106,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::put('/products/{productId}/categories/sync', [ProductCategoryApiController::class, 'sync'])->middleware(AdminOnly::class);
 
     // bookings routes behind middleware
-    Route::apiResource('/bookings', BookingController::class)->only(['index', 'show', 'destroy','update']);
+    Route::get('/bookings', [BookingController::class, 'index'])->middleware(AdminOnly::class);
+    Route::apiResource('/bookings', BookingController::class)->only(['show', 'destroy', 'update'])->middleware(AdminOnly::class);
+
 
     // Booking Has Products routes behind middleware
     Route::get('/bookings/{bookingId}/products', [BookingHasProductsController::class, 'index']);
