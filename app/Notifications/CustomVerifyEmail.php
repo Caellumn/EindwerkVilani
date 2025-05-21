@@ -25,14 +25,17 @@ class CustomVerifyEmail extends VerifyEmail
      */
     protected function verificationUrl($notifiable)
     {
-        return Uri::temporarySignedRoute(
+        $uri = Uri::temporarySignedRoute(
             'verification.verify', 
             now()->addMinutes(Config::get('auth.verification.expire', 60)),
             [
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
-        )->toString();
+        );
+        
+        // Cast the Uri object to string
+        return (string) $uri;
     }
 
     public function toMail($notifiable)
