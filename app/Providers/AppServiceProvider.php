@@ -1,26 +1,25 @@
 <?php
 
 namespace App\Providers;
-use Illuminate\Contracts\Routing\UrlGenerator;
+
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(UrlGenerator $url)
+    public function boot(): void
     {
-        if (env('APP_ENV') === 'production') {
-            $url->forceScheme('https');
+        if (app()->environment('production')) {
+            // 1) Force all URLs to be generated with your APP_URL
+            URL::useOrigin(config('app.url'));
+
+            // 2) Force HTTPS on all generated URLs
+            URL::forceScheme('https');
         }
     }
 }
