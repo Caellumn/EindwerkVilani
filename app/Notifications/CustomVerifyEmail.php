@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Uri;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-
+use Illuminate\Support\Facades\Log;
 class CustomVerifyEmail extends VerifyEmail
 {
     use Queueable;
@@ -41,6 +41,9 @@ class CustomVerifyEmail extends VerifyEmail
     public function toMail($notifiable)
     {
         $verificationUrl = $this->verificationUrl($notifiable);
+
+        // 🔥 DEBUG 🔥
+    Log::info('VERIFICATION LINK GENERATED: '.$verificationUrl);
         
         // Create instance of the custom mail class
         $mail = new EmailVerificationCustom($verificationUrl);

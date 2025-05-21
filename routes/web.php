@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
-
+// comment to push
 // Public homepage
 Route::get('/', function () {
     return view('welcome');
