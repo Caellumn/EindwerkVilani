@@ -7,12 +7,33 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Mail\EmailVerificationCustom;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Uri;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CustomVerifyEmail extends VerifyEmail
 {
     use Queueable;
+
+    /**
+     * Get the verification URL for the given notifiable.
+     *
+     * @param  mixed  $notifiable
+     * @return string
+     */
+    protected function verificationUrl($notifiable)
+    {
+        return Uri::temporarySignedRoute(
+            'verification.verify', 
+            now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            [
+                'id' => $notifiable->getKey(),
+                'hash' => sha1($notifiable->getEmailForVerification()),
+            ]
+        )->toString();
+    }
 
     public function toMail($notifiable)
     {
