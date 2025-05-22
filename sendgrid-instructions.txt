@@ -1,0 +1,31 @@
+# Setting up SendGrid in Your Laravel Application
+
+## Update Your .env File
+
+Add these variables to your .env file:
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.sendgrid.net
+MAIL_PORT=587
+MAIL_USERNAME=apikey
+MAIL_PASSWORD=your_sendgrid_api_key_here
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your_verified_email@example.com
+MAIL_FROM_NAME="Your Name"
+```
+
+Replace:
+- `your_sendgrid_api_key_here` with your actual SendGrid API key
+- `your_verified_email@example.com` with your verified sender email
+- `Your Name` with your sender name
+
+## How to Test
+
+Visit `/test-sendgrid` in your browser to test sending the welcome email to argaenth@gmail.com.
+
+## Important Notes
+
+1. Make sure your sender email is verified in SendGrid
+2. The API key needs "Mail Send" permissions
+3. No folder structure has been changed - everything is using the original folder paths 

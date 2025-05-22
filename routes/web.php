@@ -1,11 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+<<<<<<< HEAD
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 // comment to push
 // Public homepage
+=======
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+
+>>>>>>> dev
 Route::get('/', function () {
     return view('welcome');
 });
@@ -38,3 +44,15 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
+// Test route for sending welcome email (remove in production)
+Route::get('/test-welcome-email', function () {
+    $user = Auth::user();
+    if (!$user) {
+        return 'Please login first to test the welcome email';
+    }
+    
+    Mail::to($user)->send(new \App\Mail\WelcomeEmail($user));
+    
+    return 'Welcome email sent to ' . $user->email;
+})->middleware(['auth']);
