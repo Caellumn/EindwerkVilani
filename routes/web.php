@@ -1,17 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-<<<<<<< HEAD
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 // comment to push
 // Public homepage
-=======
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
->>>>>>> dev
 Route::get('/', function () {
     return view('welcome');
 });
