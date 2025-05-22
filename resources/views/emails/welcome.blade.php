@@ -18,30 +18,22 @@
 
           <!-- Hoofdcontent -->
           <div style="padding:30px 20px; line-height:1.6; color:#5a3d2b;">
-            <h1 style="font-size:24px; margin-bottom:20px; color:#a5673f;">Bevestig uw e-mailadres</h1>
+            <h1 style="font-size:24px; margin-bottom:20px; color:#a5673f;">Bedankt voor uw registratie</h1>
             <p>Beste klant,</p>
-            <p>Hartelijk dank voor uw registratie bij <strong>Kapsalon Vilani</strong>. Om uw account te activeren, vragen wij u om uw e-mailadres te bevestigen.</p>
-            <p>Klik op de onderstaande knop om uw e-mailadres te verifiëren:</p>
-            <p style="text-align:center;">
-              <a href="{{ $url }}" style="display:inline-block; padding:12px 24px; background-color:#a5673f; color:#ffffff; text-decoration:none; border-radius:4px; font-weight:bold;">
-                Bevestig e-mailadres
-              </a>
-            </p>
-            <p>Mocht de knop niet werken, kopieer en plak dan de volgende link in uw browser:</p>
-            <p><a href="{{ $url }}" style="color:#a5673f; word-break:break-all;">{{ $url }}</a></p>
+            <p>Hartelijk dank voor uw registratie bij <strong>Kapsalon Vilani</strong>.</p>
+            <p>U kunt nu inloggen op uw account en gebruik maken van onze online diensten.</p>
+            <p>Heeft u vragen of opmerkingen? Neem dan gerust contact met ons op.</p>
             <p>Met vriendelijke groet,<br>Het team van Kapsalon Vilani</p>
           </div>
 
           <!-- Footer -->
           <div style="background-color:#fff8f3; padding:20px; text-align:center; font-size:12px; color:#777777;">
-            <p>Kapsalon Vilani • Bloemenstraat 12 • 1000 Brussel</p>
-            <p>Tel: +32 2 123 45 67 • <a href="mailto:info@kapsalonvilani.be" style="color:#a5673f; text-decoration:none;">info@kapsalonvilani.be</a></p>
+            <p>Kapsalon Vilani • Puttestraat 3 • 2940 Stabroek</p>
+            <p>Tel: +32 3 294 48 33 • <a href="mailto:info@kapsalonvilani.be" style="color:#a5673f; text-decoration:none;">info@kapsalonvilani.be</a></p>
             <p>Volg ons op 
-              <a href="https://www.facebook.com/kapsalonvilani" style="color:#a5673f; text-decoration:none;">Facebook</a>, 
-              <a href="https://www.instagram.com/kapsalonvilani" style="color:#a5673f; text-decoration:none;">Instagram</a>
+              <a href="https://www.facebook.com/kapsalonvilani" style="color:#a5673f; text-decoration:none;">Facebook</a>
             </p>
           </div>
-
         </div>
       </td>
     </tr>
