@@ -17,6 +17,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Carbon\Carbon;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 
 class BookingResource extends Resource
 {
@@ -49,6 +50,10 @@ class BookingResource extends Resource
                         Forms\Components\DateTimePicker::make('date')
                             ->required(),
                             
+                        Forms\Components\DateTimePicker::make('end_time')
+                            ->label('End Time')
+                            ->helperText('This will be automatically calculated based on selected services'),
+                            
                         Forms\Components\Select::make('gender')
                             ->options([
                                 'male' => 'Male',
@@ -76,7 +81,13 @@ class BookingResource extends Resource
                         Forms\Components\CheckboxList::make('services')
                             ->relationship('services', 'name')
                             ->columns(2)
-                            ->searchable(),
+                            ->searchable()
+                            ->afterStateUpdated(function ($state, $record) {
+                                // Only recalculate if we have an existing record (editing)
+                                if ($record && $record->exists) {
+                                    $record->recalculateEndTime();
+                                }
+                            }),
                     ]),
                     
                 Forms\Components\Section::make('Products')
@@ -98,6 +109,11 @@ class BookingResource extends Resource
                     ->sortable(),
                 
                 TextColumn::make('date')
+                    ->dateTime('d-m-Y H:i')
+                    ->sortable(),
+                
+                TextColumn::make('end_time')
+                    ->label('End Time')
                     ->dateTime('d-m-Y H:i')
                     ->sortable(),
                 
@@ -174,6 +190,18 @@ class BookingResource extends Resource
                         'female' => 'Female',
                     ])
                     ->placeholder('All Genders'),
+                
+                Tables\Filters\TernaryFilter::make('exclude_cancelled')
+                    ->label('Show Cancelled Bookings')
+                    ->placeholder('All bookings')
+                    ->trueLabel('Include cancelled')
+                    ->falseLabel('Exclude cancelled')
+                    ->default(false) // Default to excluding cancelled bookings
+                    ->queries(
+                        true: fn (Builder $query): Builder => $query, // Show all including cancelled
+                        false: fn (Builder $query): Builder => $query->where('status', '!=', 'cancelled'), // Exclude cancelled
+                        blank: fn (Builder $query): Builder => $query // Show all when no filter applied
+                    ),
             ])
             ->persistFiltersInSession()
             ->filtersFormColumns(3)

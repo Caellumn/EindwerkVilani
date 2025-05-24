@@ -49,6 +49,14 @@ class ServiceResource extends Resource
                             ->required()
                             ->numeric()
                             ->prefix('€'),
+                        Forms\Components\TextInput::make('time')
+                            ->label('Duration (minutes)')
+                            ->required()
+                            ->numeric()
+                            ->suffix('min')
+                            ->helperText('Duration of the service in minutes')
+                            ->minValue(1)
+                            ->maxValue(480), // 8 hours max
                         Forms\Components\Toggle::make('active')
                             ->label('Active Status')
                             ->default(true)
@@ -111,6 +119,10 @@ class ServiceResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->money('EUR')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('time')
+                    ->label('Duration')
+                    ->suffix(' min')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('active')
                     ->numeric()

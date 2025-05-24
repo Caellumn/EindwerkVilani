@@ -331,7 +331,7 @@
                     "Services"
                 ],
                 "summary": "Sync services for a booking",
-                "description": "Update the services associated with a specific booking",
+                "description": "Update the services associated with a specific booking. Automatically recalculates the booking end time based on the total duration of all selected services.",
                 "operationId": "5081368dc302291c4e556f70ac03bd47",
                 "parameters": [
                     {
@@ -356,7 +356,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Services synced successfully",
+                        "description": "Services synced successfully and booking end time recalculated",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -547,7 +547,7 @@
                     "Bookings"
                 ],
                 "summary": "Create a new booking",
-                "description": "Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'.",
+                "description": "Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'. Automatically detects booking overlaps for the same gender and returns a warning that can be overridden with the force_create parameter.",
                 "operationId": "createBooking",
                 "requestBody": {
                     "description": "Booking data",
@@ -555,7 +555,21 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/BookingRequest"
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/BookingRequest"
+                                    },
+                                    {
+                                        "properties": {
+                                            "force_create": {
+                                                "description": "Set to true to create booking even when overlaps are detected",
+                                                "type": "boolean",
+                                                "example": false
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
                             }
                         }
                     }
@@ -567,6 +581,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Booking"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Booking overlap detected (same gender conflict)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BookingOverlapResponse"
                                 }
                             }
                         }
@@ -1745,88 +1769,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "tags": [
-                    "Services"
-                ],
-                "summary": "Create a new service",
-                "description": "Creates a new service and returns the service details",
-                "operationId": "025f26719e7eb513dc977be8039edd5e",
-                "requestBody": {
-                    "description": "Required fields: name, description, duration_phase_1. Optional fields: rest_duration, duration_phase_2",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "description",
-                                    "duration_phase_1"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "description": "Required. Name of the service",
-                                        "type": "string",
-                                        "example": "Haircut"
-                                    },
-                                    "description": {
-                                        "description": "Required. Description of the service",
-                                        "type": "string",
-                                        "example": "Basic haircut service"
-                                    },
-                                    "duration_phase_1": {
-                                        "description": "Required. Duration of phase 1 in minutes",
-                                        "type": "integer",
-                                        "example": 30
-                                    },
-                                    "rest_duration": {
-                                        "description": "Optional. Rest duration in minutes",
-                                        "type": "integer",
-                                        "example": 0
-                                    },
-                                    "duration_phase_2": {
-                                        "description": "Optional. Duration of phase 2 in minutes",
-                                        "type": "integer",
-                                        "example": 0
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Service created successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Service"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Service already exists",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Service already exists"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
             }
         },
         "/services/all": {
@@ -1870,6 +1812,130 @@
                 }
             }
         },
+        "/api/services": {
+            "post": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Create a new service",
+                "description": "Creates a new service with duration-based pricing and returns the service details",
+                "operationId": "e4f15c748a6308ff45a0c6a254af2c61",
+                "requestBody": {
+                    "description": "Required fields: name, description, hairlength, price, time. Optional fields: active",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "description",
+                                    "hairlength",
+                                    "price",
+                                    "time"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Required. Name of the service",
+                                        "type": "string",
+                                        "example": "Haircut"
+                                    },
+                                    "description": {
+                                        "description": "Required. Description of the service",
+                                        "type": "string",
+                                        "example": "Basic haircut service"
+                                    },
+                                    "hairlength": {
+                                        "description": "Required. Target hair length category",
+                                        "type": "string",
+                                        "enum": [
+                                            "short",
+                                            "medium",
+                                            "long"
+                                        ],
+                                        "example": "medium"
+                                    },
+                                    "price": {
+                                        "description": "Required. Service price in euros",
+                                        "type": "number",
+                                        "format": "decimal",
+                                        "example": 25.5
+                                    },
+                                    "time": {
+                                        "description": "Required. Service duration in minutes (1-480)",
+                                        "type": "integer",
+                                        "example": 30
+                                    },
+                                    "active": {
+                                        "description": "Optional. Service status (default: true)",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Service created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Service"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Service already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service already exists"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The time field is required."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "name": [
+                                                    "The name field is required."
+                                                ],
+                                                "hairlength": [
+                                                    "The selected hairlength is invalid."
+                                                ],
+                                                "time": [
+                                                    "The time must be between 1 and 480."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/services/{id}": {
             "get": {
                 "tags": [
@@ -1902,75 +1968,6 @@
                     },
                     "404": {
                         "description": "Service not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Services"
-                ],
-                "summary": "Update an existing service",
-                "description": "Updates a service and returns the updated service details",
-                "operationId": "0327b8719d91bf3647f2adb643bc349d",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID of service to update",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Updated Haircut"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Updated haircut service"
-                                    },
-                                    "duration_phase_1": {
-                                        "type": "integer",
-                                        "example": 45
-                                    },
-                                    "rest_duration": {
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "duration_phase_2": {
-                                        "type": "integer",
-                                        "example": 15
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Service updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Service"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Service not found"
-                    },
-                    "422": {
-                        "description": "Validation error"
                     }
                 }
             },
@@ -2021,6 +2018,132 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Service not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/services/{id}": {
+            "put": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Update an existing service",
+                "description": "Updates a service and returns the updated service details. All fields are optional for updates.",
+                "operationId": "f894af3a0b1f10488139213fddd12305",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of service to update",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Service update data - all fields are optional",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "Service name",
+                                        "type": "string",
+                                        "example": "Updated Haircut"
+                                    },
+                                    "description": {
+                                        "description": "Service description",
+                                        "type": "string",
+                                        "example": "Updated haircut service description"
+                                    },
+                                    "hairlength": {
+                                        "description": "Target hair length category",
+                                        "type": "string",
+                                        "enum": [
+                                            "short",
+                                            "medium",
+                                            "long"
+                                        ],
+                                        "example": "long"
+                                    },
+                                    "price": {
+                                        "description": "Service price in euros",
+                                        "type": "number",
+                                        "format": "decimal",
+                                        "example": 35
+                                    },
+                                    "time": {
+                                        "description": "Service duration in minutes (1-480)",
+                                        "type": "integer",
+                                        "example": 45
+                                    },
+                                    "active": {
+                                        "description": "Service status",
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Service updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Service"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Service not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Service not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The selected hairlength is invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "hairlength": [
+                                                    "The selected hairlength is invalid."
+                                                ],
+                                                "time": [
+                                                    "The time must be between 1 and 480."
+                                                ]
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -2847,17 +2970,29 @@
                         "type": "string",
                         "example": "Basic haircut service"
                     },
-                    "duration_phase_1": {
+                    "hairlength": {
+                        "type": "string",
+                        "enum": [
+                            "short",
+                            "medium",
+                            "long"
+                        ],
+                        "example": "medium"
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 25.5
+                    },
+                    "time": {
+                        "description": "Service duration in minutes",
                         "type": "integer",
                         "example": 30
                     },
-                    "rest_duration": {
-                        "type": "integer",
-                        "example": 0
-                    },
-                    "duration_phase_2": {
-                        "type": "integer",
-                        "example": 0
+                    "active": {
+                        "description": "Service status",
+                        "type": "boolean",
+                        "example": true
                     },
                     "created_at": {
                         "type": "string",
@@ -2984,9 +3119,16 @@
                         "example": "123e4567-e89b-12d3-a456-426614174000"
                     },
                     "date": {
+                        "description": "Booking start date and time",
                         "type": "string",
                         "format": "date-time",
                         "example": "2023-06-15T14:30:00Z"
+                    },
+                    "end_time": {
+                        "description": "Booking end time (automatically calculated based on services)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-06-15T16:00:00Z"
                     },
                     "name": {
                         "type": "string",
@@ -3244,15 +3386,20 @@
                     "telephone",
                     "gender",
                     "remarks",
-                    "status",
-                    "user_id"
+                    "status"
                 ],
                 "properties": {
                     "date": {
-                        "description": "Booking date and time (required)",
+                        "description": "Booking start date and time (required)",
                         "type": "string",
                         "format": "date-time",
                         "example": "2023-06-15T14:30:00Z"
+                    },
+                    "end_time": {
+                        "description": "Booking end time (optional - automatically calculated from services if not provided)",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-06-15T16:00:00Z"
                     },
                     "name": {
                         "description": "Customer name (required)",
@@ -3296,10 +3443,21 @@
                         "example": "pending"
                     },
                     "user_id": {
-                        "description": "User ID (required)",
+                        "description": "User ID (optional)",
                         "type": "string",
                         "format": "uuid",
                         "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "service_id": {
+                        "description": "Service ID for end time calculation (optional)",
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "force_create": {
+                        "description": "Set to true to create booking even when overlaps are detected (optional)",
+                        "type": "boolean",
+                        "example": false
                     }
                 },
                 "type": "object"
@@ -3358,6 +3516,65 @@
                         "type": "string",
                         "format": "uuid",
                         "example": "123e4567-e89b-12d3-a456-426614174000"
+                    }
+                },
+                "type": "object"
+            },
+            "BookingOverlapResponse": {
+                "description": "Response when booking overlap is detected",
+                "properties": {
+                    "warning": {
+                        "description": "Warning type identifier",
+                        "type": "string",
+                        "example": "overlapping_booking"
+                    },
+                    "message": {
+                        "description": "Human-readable warning message",
+                        "type": "string",
+                        "example": "This booking overlaps with existing bookings for the same gender."
+                    },
+                    "continue_anyway": {
+                        "description": "Flag indicating if booking can be forced",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "overlapping_bookings": {
+                        "description": "Array of conflicting bookings",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "description": "Booking ID",
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                                },
+                                "name": {
+                                    "description": "Customer name",
+                                    "type": "string",
+                                    "example": "John Doe"
+                                },
+                                "start_time": {
+                                    "description": "Booking start time",
+                                    "type": "string",
+                                    "format": "time",
+                                    "example": "21:23"
+                                },
+                                "end_time": {
+                                    "description": "Booking end time",
+                                    "type": "string",
+                                    "format": "time",
+                                    "example": "23:53"
+                                },
+                                "date": {
+                                    "description": "Booking date",
+                                    "type": "string",
+                                    "format": "date",
+                                    "example": "15-01-2025"
+                                }
+                            },
+                            "type": "object"
+                        }
                     }
                 },
                 "type": "object"

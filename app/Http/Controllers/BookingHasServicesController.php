@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\BookingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 
 class BookingHasServicesController extends Controller
@@ -125,7 +126,7 @@ class BookingHasServicesController extends Controller
      *     path="/api/bookings/{bookingId}/services/sync",
      *     tags={"Bookings", "Services"},
      *     summary="Sync services for a booking",
-     *     description="Update the services associated with a specific booking",
+     *     description="Update the services associated with a specific booking. Automatically recalculates the booking end time based on the total duration of all selected services.",
      *     @OA\Parameter(
      *         name="bookingId",
      *         in="path",
@@ -139,7 +140,7 @@ class BookingHasServicesController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Services synced successfully",
+     *         description="Services synced successfully and booking end time recalculated",
      *         @OA\JsonContent(ref="#/components/schemas/BookingServiceResponse")
      *     ),
      *     @OA\Response(
@@ -215,7 +216,10 @@ class BookingHasServicesController extends Controller
          // 2. Attaches any new services from the array
          // 3. Updates pivot data for services that remain
          $booking->services()->sync($services);
- 
+
+         // Recalculate booking end time based on total service duration
+         $booking->recalculateEndTime();
+
          // Load the services with only id and name fields
          $booking->load(['services' => function($query) {
              $query->select('services.id', 'services.name');

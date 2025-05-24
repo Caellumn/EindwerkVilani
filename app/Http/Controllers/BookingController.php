@@ -6,6 +6,8 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use App\Models\User;
 use OpenApi\Annotations as OA;
+use App\Models\Service;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -143,18 +145,35 @@ class BookingController extends Controller
      * @OA\Post(
      *     path="/api/bookings",
      *     summary="Create a new booking",
-     *     description="Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'.",
+     *     description="Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'. Automatically detects booking overlaps for the same gender and returns a warning that can be overridden with the force_create parameter.",
      *     operationId="createBooking",
      *     tags={"Bookings"},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Booking data",
-     *         @OA\JsonContent(ref="#/components/schemas/BookingRequest")
+     *         @OA\JsonContent(
+     *             allOf={
+     *                 @OA\Schema(ref="#/components/schemas/BookingRequest"),
+     *                 @OA\Schema(
+     *                     @OA\Property(
+     *                         property="force_create",
+     *                         type="boolean",
+     *                         description="Set to true to create booking even when overlaps are detected",
+     *                         example=false
+     *                     )
+     *                 )
+     *             }
+     *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Booking created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Booking")
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Booking overlap detected (same gender conflict)",
+     *         @OA\JsonContent(ref="#/components/schemas/BookingOverlapResponse")
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -217,7 +236,74 @@ class BookingController extends Controller
                 'remarks' => 'required|string|max:255',
                 'status' => 'required|in:pending,confirmed,cancelled,completed',
                 'user_id' => 'sometimes|uuid|exists:users,id',
+                'service_id' => 'sometimes|uuid|exists:services,id',
+                'end_time' => 'sometimes|date',
+                'force_create' => 'sometimes|boolean',
+
             ]);
+
+            //if end time is not provided, calculate it based on the service time
+            if (!$request->has('end_time')) {
+                $service = Service::find($request->service_id);
+                if ($service && $service->time) {
+                    $end_time = Carbon::parse($request->date)->addMinutes((int) $service->time);
+                    $validated['end_time'] = $end_time;
+                } else {
+                    // If no service found or service has no time, set end_time same as start time
+                    $validated['end_time'] = Carbon::parse($request->date);
+                }
+            }
+
+            // Check for overlapping bookings with same gender
+            $startTime = Carbon::parse($validated['date']);
+            $endTime = Carbon::parse($validated['end_time']);
+            
+            // Only check for overlaps if not forcing creation
+            if (!$request->has('force_create') || !$request->force_create) {
+                $overlappingBookings = Booking::where('gender', $validated['gender'])
+                    ->where('status', '!=', 'cancelled')
+                    ->where(function ($query) use ($startTime, $endTime) {
+                        $query->where(function ($q) use ($startTime, $endTime) {
+                            // New booking start time overlaps with existing booking
+                            $q->where('date', '<=', $startTime)
+                              ->where('end_time', '>', $startTime);
+                        })->orWhere(function ($q) use ($startTime, $endTime) {
+                            // New booking end time overlaps with existing booking
+                            $q->where('date', '<', $endTime)
+                              ->where('end_time', '>=', $endTime);
+                        })->orWhere(function ($q) use ($startTime, $endTime) {
+                            // Existing booking is completely within new booking
+                            $q->where('date', '>=', $startTime)
+                              ->where('end_time', '<=', $endTime);
+                        })->orWhere(function ($q) use ($startTime, $endTime) {
+                            // New booking is completely within existing booking
+                            $q->where('date', '<=', $startTime)
+                              ->where('end_time', '>=', $endTime);
+                        });
+                    })
+                    ->get(['id', 'name', 'date', 'end_time']);
+
+                // If overlapping bookings found, return warning response
+                if ($overlappingBookings->count() > 0) {
+                    $overlappingDetails = $overlappingBookings->map(function ($booking) {
+                        return [
+                            'id' => $booking->id,
+                            'name' => $booking->name,
+                            'start_time' => Carbon::parse($booking->date)->format('H:i'),
+                            'end_time' => Carbon::parse($booking->end_time)->format('H:i'),
+                            'date' => Carbon::parse($booking->date)->format('d-m-Y')
+                        ];
+                    });
+
+                    return response()->json([
+                        'warning' => 'overlapping_booking',
+                        'message' => 'This booking overlaps with existing bookings for the same gender.',
+                        'overlapping_bookings' => $overlappingDetails,
+                        'continue_anyway' => false
+                    ], 409); // 409 Conflict status
+                }
+            }
+                
 
             //create the booking
             $booking = Booking::create($validated);

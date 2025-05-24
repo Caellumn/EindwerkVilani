@@ -75,41 +75,54 @@ class ServiceApiController extends Controller
     /**
      * Store a newly created resource in storage.
      * 
-      * @OA\Post(
-      *     path="/services", 
+     * @OA\Post(
+     *     path="/api/services", 
      *     tags={"Services"},
-      *     summary="Create a new service",
-     *     description="Creates a new service and returns the service details",
-      *     @OA\RequestBody(
-      *         required=true,
-     *         description="Required fields: name, description, duration_phase_1. Optional fields: rest_duration, duration_phase_2",
+     *     summary="Create a new service",
+     *     description="Creates a new service with duration-based pricing and returns the service details",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Required fields: name, description, hairlength, price, time. Optional fields: active",
      *         @OA\JsonContent(
-     *             required={"name", "description", "duration_phase_1"},
+     *             required={"name", "description", "hairlength", "price", "time"},
      *             @OA\Property(property="name", type="string", example="Haircut", description="Required. Name of the service"),
      *             @OA\Property(property="description", type="string", example="Basic haircut service", description="Required. Description of the service"),
-     *             @OA\Property(property="duration_phase_1", type="integer", example=30, description="Required. Duration of phase 1 in minutes"),
-     *             @OA\Property(property="rest_duration", type="integer", example=0, description="Optional. Rest duration in minutes"),
-     *             @OA\Property(property="duration_phase_2", type="integer", example=0, description="Optional. Duration of phase 2 in minutes")
+     *             @OA\Property(property="hairlength", type="string", enum={"short", "medium", "long"}, example="medium", description="Required. Target hair length category"),
+     *             @OA\Property(property="price", type="number", format="decimal", example=25.50, description="Required. Service price in euros"),
+     *             @OA\Property(property="time", type="integer", example=30, description="Required. Service duration in minutes (1-480)"),
+     *             @OA\Property(property="active", type="boolean", example=true, description="Optional. Service status (default: true)")
      *         )
      *     ),
      *     @OA\Response(
-     *         response=200,
+     *         response=201,
      *         description="Service created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Service")
      *     ),
      *     @OA\Response(
-     *         response=400,
+     *         response=409,
      *         description="Service already exists",
-      *         @OA\JsonContent(
+     *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Service already exists")
-      *         )
-      *     ),
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The time field is required."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "name": {"The name field is required."},
+     *                     "hairlength": {"The selected hairlength is invalid."},
+     *                     "time": {"The time must be between 1 and 480."}
+     *                 }
+     *             )
+     *         )
      *     )
-      * )
-      */
+     * )
+     */
     public function store(Request $request)
     {
         //create a new service
@@ -177,25 +190,27 @@ class ServiceApiController extends Controller
      * Update the specified resource in storage.
      * 
      * @OA\Put(
-     *     path="/services/{id}",
+     *     path="/api/services/{id}",
      *     tags={"Services"},
      *     summary="Update an existing service",
-     *     description="Updates a service and returns the updated service details",
+     *     description="Updates a service and returns the updated service details. All fields are optional for updates.",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of service to update",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
+     *         description="Service update data - all fields are optional",
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Updated Haircut"),
-     *             @OA\Property(property="description", type="string", example="Updated haircut service"),
-     *             @OA\Property(property="duration_phase_1", type="integer", example=45),
-     *             @OA\Property(property="rest_duration", type="integer", example=5),
-     *             @OA\Property(property="duration_phase_2", type="integer", example=15)
+     *             @OA\Property(property="name", type="string", example="Updated Haircut", description="Service name"),
+     *             @OA\Property(property="description", type="string", example="Updated haircut service description", description="Service description"),
+     *             @OA\Property(property="hairlength", type="string", enum={"short", "medium", "long"}, example="long", description="Target hair length category"),
+     *             @OA\Property(property="price", type="number", format="decimal", example=35.00, description="Service price in euros"),
+     *             @OA\Property(property="time", type="integer", example=45, description="Service duration in minutes (1-480)"),
+     *             @OA\Property(property="active", type="boolean", example=false, description="Service status")
      *         )
      *     ),
      *     @OA\Response(
@@ -205,11 +220,25 @@ class ServiceApiController extends Controller
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Service not found"
+     *         description="Service not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Service not found")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error"
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The selected hairlength is invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "hairlength": {"The selected hairlength is invalid."},
+     *                     "time": {"The time must be between 1 and 480."}
+     *                 }
+     *             )
+     *         )
      *     )
      * )
      */

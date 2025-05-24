@@ -71,9 +71,10 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
  *     @OA\Property(property="name", type="string", example="Haircut"),
  *     @OA\Property(property="description", type="string", example="Basic haircut service"),
- *     @OA\Property(property="duration_phase_1", type="integer", example=30),
- *     @OA\Property(property="rest_duration", type="integer", example=0),
- *     @OA\Property(property="duration_phase_2", type="integer", example=0),
+ *     @OA\Property(property="hairlength", type="string", enum={"short", "medium", "long"}, example="medium"),
+ *     @OA\Property(property="price", type="number", format="decimal", example=25.50),
+ *     @OA\Property(property="time", type="integer", example=30, description="Service duration in minutes"),
+ *     @OA\Property(property="active", type="boolean", example=true, description="Service status"),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )
@@ -112,7 +113,8 @@ use OpenApi\Annotations as OA;
  * @OA\Schema(
  *     schema="Booking",
  *     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
- *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z"),
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking start date and time"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-15T16:00:00Z", description="Booking end time (automatically calculated based on services)"),
  *     @OA\Property(property="name", type="string", example="John Doe"),
  *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
  *     @OA\Property(property="telephone", type="string", example="+31612345678"),
@@ -237,15 +239,18 @@ use OpenApi\Annotations as OA;
  *
  * @OA\Schema(
  *     schema="BookingRequest",
- *     required={"date", "name", "email", "telephone", "gender", "remarks", "status", "user_id"},
- *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking date and time (required)"),
+ *     required={"date", "name", "email", "telephone", "gender", "remarks", "status"},
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking start date and time (required)"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-15T16:00:00Z", description="Booking end time (optional - automatically calculated from services if not provided)"),
  *     @OA\Property(property="name", type="string", example="John Doe", description="Customer name (required)"),
  *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Customer email (required)"),
  *     @OA\Property(property="telephone", type="string", example="+31612345678", description="Customer telephone (required)"),
  *     @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="Customer gender (required)"),
  *     @OA\Property(property="remarks", type="string", example="First time customer, prefers short haircut", description="Additional remarks (required)"),
  *     @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="pending", description="Booking status (required)"),
- *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="User ID (required)")
+ *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="User ID (optional)"),
+ *     @OA\Property(property="service_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="Service ID for end time calculation (optional)"),
+ *     @OA\Property(property="force_create", type="boolean", example=false, description="Set to true to create booking even when overlaps are detected (optional)")
  * )
  *
  * @OA\Schema(
@@ -258,6 +263,26 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="remarks", type="string", example="First time customer, prefers short haircut", description="Additional remarks"),
  *     @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="confirmed", description="Booking status"),
  *     @OA\Property(property="user_id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="User ID")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingOverlapResponse",
+ *     description="Response when booking overlap is detected",
+ *     @OA\Property(property="warning", type="string", example="overlapping_booking", description="Warning type identifier"),
+ *     @OA\Property(property="message", type="string", example="This booking overlaps with existing bookings for the same gender.", description="Human-readable warning message"),
+ *     @OA\Property(property="continue_anyway", type="boolean", example=false, description="Flag indicating if booking can be forced"),
+ *     @OA\Property(
+ *         property="overlapping_bookings",
+ *         type="array",
+ *         description="Array of conflicting bookings",
+ *         @OA\Items(
+ *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000", description="Booking ID"),
+ *             @OA\Property(property="name", type="string", example="John Doe", description="Customer name"),
+ *             @OA\Property(property="start_time", type="string", format="time", example="21:23", description="Booking start time"),
+ *             @OA\Property(property="end_time", type="string", format="time", example="23:53", description="Booking end time"),
+ *             @OA\Property(property="date", type="string", format="date", example="15-01-2025", description="Booking date")
+ *         )
+ *     )
  * )
  *
  * @OA\Schema(

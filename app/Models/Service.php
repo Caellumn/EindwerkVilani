@@ -33,7 +33,19 @@ class Service extends Model
         'description',
         'hairlength',
         'price',
-        'active'
+        'active',
+        'time'
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'time' => 'integer',
+        'price' => 'decimal:2',
+        'active' => 'boolean',
     ];
 
     public function categories(): BelongsToMany
