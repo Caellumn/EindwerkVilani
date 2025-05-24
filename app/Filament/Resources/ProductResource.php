@@ -32,95 +32,60 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('image')
                     ->nullable()
                     ->label('Image URL')
-                    ->helperText('The Cloudinary URL will appear here after upload')
-                    ->suffixAction(
-                        Forms\Components\Actions\Action::make('uploadToCloudinary')
-                            ->icon('heroicon-o-cloud-arrow-up')
-                            ->label('Upload Image')
-                            ->form([
-                                Forms\Components\FileUpload::make('cloudinary_file')
-                                    ->label('Select Image')
-                                    ->image()
-                                    ->required()
-                                    ->maxSize(2048)
-                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/gif']),
-                            ])
-                            ->action(function (array $data, Forms\Set $set) {
-                                if (!isset($data['cloudinary_file']) || empty($data['cloudinary_file'])) {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Upload failed')
-                                        ->body('No file selected')
-                                        ->danger()
-                                        ->send();
+                    ->readonly()
+                    ->helperText('Upload an image using the button below'),
+
+                Forms\Components\Placeholder::make('upload_placeholder')
+                    ->label('Upload Image')
+                    ->content(new HtmlString('
+                        <div id="cloudinary-uploader">
+                            <input type="file" id="image-upload" accept="image/*" style="margin-bottom: 10px;">
+                            <button type="button" id="upload-btn" style="background: #3B82F6; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Upload to Cloudinary</button>
+                            <div id="upload-status" style="margin-top: 10px;"></div>
+                        </div>
+                        
+                        <script>
+                            document.getElementById("upload-btn").addEventListener("click", function() {
+                                const fileInput = document.getElementById("image-upload");
+                                const statusDiv = document.getElementById("upload-status");
+                                
+                                if (!fileInput.files[0]) {
+                                    statusDiv.innerHTML = "<span style=\"color: red;\">Please select a file first</span>";
                                     return;
                                 }
                                 
-                                try {
-                                    // Get the uploaded file
-                                    $uploadedFile = $data['cloudinary_file'];
-                                    
-                                    // In DDEV/Docker, we need to work with the temporary uploaded file directly
-                                    if (is_string($uploadedFile)) {
-                                        // If it's a string path, try to find the file
-                                        $possiblePaths = [
-                                            storage_path('app/public/' . $uploadedFile),
-                                            storage_path('app/' . $uploadedFile),
-                                            $uploadedFile,
-                                            public_path('storage/' . $uploadedFile)
-                                        ];
-                                        
-                                        $filePath = null;
-                                        foreach ($possiblePaths as $path) {
-                                            if (file_exists($path)) {
-                                                $filePath = $path;
-                                                break;
-                                            }
+                                const formData = new FormData();
+                                formData.append("image", fileInput.files[0]);
+                                formData.append("_token", document.querySelector("meta[name=csrf-token]").content);
+                                
+                                statusDiv.innerHTML = "<span style=\"color: blue;\">Uploading...</span>";
+                                
+                                fetch("/admin/upload-to-cloudinary", {
+                                    method: "POST",
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        const imageField = document.querySelector("input[wire\\:model=\"mountedFormComponentActionsData.0.image\"]") || 
+                                                         document.querySelector("input[name=\"image\"]");
+                                        if (imageField) {
+                                            imageField.value = data.url;
+                                            imageField.dispatchEvent(new Event("input"));
                                         }
-                                        
-                                        if (!$filePath) {
-                                            throw new \Exception('Could not locate uploaded file');
-                                        }
+                                        statusDiv.innerHTML = "<span style=\"color: green;\">✓ Upload successful!</span>";
+                                        fileInput.value = "";
                                     } else {
-                                        throw new \Exception('Unexpected file format received');
+                                        statusDiv.innerHTML = "<span style=\"color: red;\">Error: " + data.error + "</span>";
                                     }
-                                    
-                                                                         // Upload to Cloudinary using direct approach
-                                    $cloudinary = new \Cloudinary\Cloudinary([
-                                        'cloud' => [
-                                            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                                            'api_key' => env('CLOUDINARY_API_KEY'), 
-                                            'api_secret' => env('CLOUDINARY_API_SECRET'),
-                                        ]
-                                    ]);
-                                    
-                                    $response = $cloudinary->uploadApi()->upload($filePath, [
-                                        'folder' => 'products',
-                                        'resource_type' => 'image'
-                                    ]);
-                                    
-                                    // Set the Cloudinary URL
-                                    $set('image', $response['secure_url']);
-                                    
-                                    // Clean up local file
-                                    if (file_exists($filePath)) {
-                                        unlink($filePath);
-                                    }
-                                    
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Upload successful')
-                                        ->body('Image uploaded to Cloudinary successfully')
-                                        ->success()
-                                        ->send();
-                                        
-                                } catch (\Exception $e) {
-                                    \Filament\Notifications\Notification::make()
-                                        ->title('Upload failed')
-                                        ->body('Error: ' . $e->getMessage())
-                                        ->danger()
-                                        ->send();
-                                }
-                            })
-                    ),
+                                })
+                                .catch(error => {
+                                    statusDiv.innerHTML = "<span style=\"color: red;\">Upload failed: " + error.message + "</span>";
+                                });
+                            });
+                        </script>
+                    '))
+                    ->hiddenOn('view'),
                 Forms\Components\Section::make('Categories')
                     ->schema([
                         Forms\Components\Select::make('categories')

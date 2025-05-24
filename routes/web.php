@@ -247,3 +247,44 @@ Route::get('/direct-cloudinary-test', function () {
         ]);
     }
 });
+
+// Custom Cloudinary upload endpoint for Filament (DigitalOcean compatible)
+Route::post('/admin/upload-to-cloudinary', function (\Illuminate\Http\Request $request) {
+    try {
+        if (!$request->hasFile('image')) {
+            return response()->json(['error' => 'No file uploaded'], 400);
+        }
+        
+        $file = $request->file('image');
+        
+        // Validate file
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+        
+        // Upload directly to Cloudinary
+        $cloudinary = new \Cloudinary\Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key' => env('CLOUDINARY_API_KEY'), 
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+            ]
+        ]);
+        
+        $response = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+            'folder' => 'products',
+            'resource_type' => 'image'
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'url' => $response['secure_url'],
+            'public_id' => $response['public_id']
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ], 500);
+    }
+})->middleware(['web']);
