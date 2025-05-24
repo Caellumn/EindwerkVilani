@@ -48,11 +48,24 @@ class BookingResource extends Resource
                             ->maxLength(255),
                             
                         Forms\Components\DateTimePicker::make('date')
-                            ->required(),
+                            ->required()
+                            ->minDate(now())
+                            ->rule('after_or_equal:now')
+                            ->validationMessages([
+                                'after_or_equal' => 'The booking date must be in the future.',
+                            ]),
                             
                         Forms\Components\DateTimePicker::make('end_time')
                             ->label('End Time')
-                            ->helperText('This will be automatically calculated based on selected services'),
+                            ->helperText('This will be automatically calculated based on selected services')
+                            ->minDate(now())
+                            ->rules([
+                                'after_or_equal:now',
+                                'after_or_equal:date',
+                            ])
+                            ->validationMessages([
+                                'after_or_equal' => 'The end time must be in the future and after the start time.',
+                            ]),
                             
                         Forms\Components\Select::make('gender')
                             ->options([

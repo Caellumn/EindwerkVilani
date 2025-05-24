@@ -240,8 +240,8 @@ use OpenApi\Annotations as OA;
  * @OA\Schema(
  *     schema="BookingRequest",
  *     required={"date", "name", "email", "telephone", "gender", "remarks", "status"},
- *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking start date and time (required)"),
- *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-15T16:00:00Z", description="Booking end time (optional - automatically calculated from services if not provided)"),
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking start date and time (required, must be in the future)"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-15T16:00:00Z", description="Booking end time (optional - automatically calculated from services if not provided, must be in the future and after start time if provided)"),
  *     @OA\Property(property="name", type="string", example="John Doe", description="Customer name (required)"),
  *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Customer email (required)"),
  *     @OA\Property(property="telephone", type="string", example="+31612345678", description="Customer telephone (required)"),
@@ -255,7 +255,8 @@ use OpenApi\Annotations as OA;
  *
  * @OA\Schema(
  *     schema="BookingUpdateRequest",
- *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking date and time"),
+ *     @OA\Property(property="date", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Booking date and time (must be in the future if provided)"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-15T16:00:00Z", description="Booking end time (must be in the future and after start time if provided)"),
  *     @OA\Property(property="name", type="string", example="John Doe", description="Customer name"),
  *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Customer email"),
  *     @OA\Property(property="telephone", type="string", example="+31612345678", description="Customer telephone"),

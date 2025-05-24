@@ -145,7 +145,7 @@ class BookingController extends Controller
      * @OA\Post(
      *     path="/api/bookings",
      *     summary="Create a new booking",
-     *     description="Creates a new booking with the provided information. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'. Automatically detects booking overlaps for the same gender and returns a warning that can be overridden with the force_create parameter.",
+     *     description="Creates a new booking with the provided information. Booking date must be in the future. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'. Automatically detects booking overlaps for the same gender and returns a warning that can be overridden with the force_create parameter.",
      *     operationId="createBooking",
      *     tags={"Bookings"},
      *     @OA\RequestBody(
@@ -184,7 +184,7 @@ class BookingController extends Controller
      *                 property="errors",
      *                 type="object",
      *                 example={
-     *                     "date": {"The date field is required."},
+     *                     "date": {"The date must be a date after or equal to now."},
      *                     "gender": {"The selected gender is invalid."},
      *                     "email": {"The email field is required."}
      *                 }
@@ -228,7 +228,7 @@ class BookingController extends Controller
             
             //validate the request
             $validated = $request->validate([
-                'date' => 'required|date',
+                'date' => 'required|date|after_or_equal:now',
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
                 'telephone' => 'required|string|max:15',
@@ -237,7 +237,7 @@ class BookingController extends Controller
                 'status' => 'required|in:pending,confirmed,cancelled,completed',
                 'user_id' => 'sometimes|uuid|exists:users,id',
                 'service_id' => 'sometimes|uuid|exists:services,id',
-                'end_time' => 'sometimes|date',
+                'end_time' => 'sometimes|date|after_or_equal:now|after_or_equal:date',
                 'force_create' => 'sometimes|boolean',
 
             ]);
@@ -402,7 +402,7 @@ class BookingController extends Controller
      *                 @OA\Property(
      *                     property="fields",
      *                     type="array",
-     *                     @OA\Items(type="string", example="Please include at least one of: date, name, email, telephone, gender, remarks, status")
+     *                     @OA\Items(type="string", example="Please include at least one of: date, name, email, telephone, gender, remarks, status, end_time")
      *                 )
      *             )
      *         )
@@ -412,11 +412,11 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         // Check if at least one valid field is provided
-        if (!$request->hasAny(['date', 'name', 'email', 'telephone', 'gender', 'remarks', 'status'])) {
+        if (!$request->hasAny(['date', 'name', 'email', 'telephone', 'gender', 'remarks', 'status', 'end_time'])) {
             return response()->json([
                 'error' => 'At least one field to update must be provided',
                 'errors' => [
-                    'fields' => ['Please include at least one of: date, name, email, telephone, gender, remarks, status']
+                    'fields' => ['Please include at least one of: date, name, email, telephone, gender, remarks, status, end_time']
                 ]
             ], 422);
         }
@@ -428,7 +428,7 @@ class BookingController extends Controller
 
         // Validate the request
         $request->validate([
-            'date' => 'sometimes|date',
+            'date' => 'sometimes|date|after_or_equal:now',
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255',
             'telephone' => 'sometimes|string|max:15',
@@ -436,11 +436,12 @@ class BookingController extends Controller
             'remarks' => 'sometimes|string|max:255',
             'status' => 'sometimes|in:pending,confirmed,cancelled,completed',
             'user_id' => 'sometimes|uuid|exists:users,id',
+            'end_time' => 'sometimes|date|after_or_equal:now|after_or_equal:date',
         ]);
 
         // Update the booking
         $booking->update($request->only([
-            'date', 'name', 'email', 'telephone', 'gender', 'remarks', 'status', 'user_id'
+            'date', 'name', 'email', 'telephone', 'gender', 'remarks', 'status', 'user_id', 'end_time'
         ]));
         
         // Return the updated booking
