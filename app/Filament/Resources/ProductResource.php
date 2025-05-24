@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\HtmlString;
 
 class ProductResource extends Resource
 {
@@ -32,57 +33,79 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('image')
                     ->nullable()
                     ->label('Image URL')
-                    ->readonly()
-                    ->helperText('Upload an image using the button below'),
+                    ->helperText('The Cloudinary URL will appear here after upload')
+                    ->afterStateUpdated(function ($state) {
+                        // This will trigger when the field value changes
+                    }),
 
-                Forms\Components\Placeholder::make('upload_placeholder')
-                    ->label('Upload Image')
+                Forms\Components\Placeholder::make('upload_section')
+                    ->label('Upload Image to Cloudinary')
                     ->content(new HtmlString('
-                        <div id="cloudinary-uploader">
-                            <input type="file" id="image-upload" accept="image/*" style="margin-bottom: 10px;">
-                            <button type="button" id="upload-btn" style="background: #3B82F6; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Upload to Cloudinary</button>
-                            <div id="upload-status" style="margin-top: 10px;"></div>
+                        <div id="cloudinary-uploader" style="border: 1px dashed #ccc; padding: 20px; border-radius: 8px; text-align: center;">
+                            <input type="file" id="image-upload" accept="image/*" style="margin-bottom: 15px; padding: 8px;">
+                            <br>
+                            <button type="button" id="upload-btn" style="background: #3B82F6; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                                📤 Upload to Cloudinary
+                            </button>
+                            <div id="upload-status" style="margin-top: 15px; font-weight: 500;"></div>
+                            <div id="image-preview" style="margin-top: 15px;"></div>
                         </div>
                         
                         <script>
-                            document.getElementById("upload-btn").addEventListener("click", function() {
-                                const fileInput = document.getElementById("image-upload");
-                                const statusDiv = document.getElementById("upload-status");
-                                
-                                if (!fileInput.files[0]) {
-                                    statusDiv.innerHTML = "<span style=\"color: red;\">Please select a file first</span>";
-                                    return;
-                                }
-                                
-                                const formData = new FormData();
-                                formData.append("image", fileInput.files[0]);
-                                formData.append("_token", document.querySelector("meta[name=csrf-token]").content);
-                                
-                                statusDiv.innerHTML = "<span style=\"color: blue;\">Uploading...</span>";
-                                
-                                fetch("/admin/upload-to-cloudinary", {
-                                    method: "POST",
-                                    body: formData
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        const imageField = document.querySelector("input[wire\\:model=\"mountedFormComponentActionsData.0.image\"]") || 
-                                                         document.querySelector("input[name=\"image\"]");
-                                        if (imageField) {
-                                            imageField.value = data.url;
-                                            imageField.dispatchEvent(new Event("input"));
-                                        }
-                                        statusDiv.innerHTML = "<span style=\"color: green;\">✓ Upload successful!</span>";
-                                        fileInput.value = "";
-                                    } else {
-                                        statusDiv.innerHTML = "<span style=\"color: red;\">Error: " + data.error + "</span>";
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const uploadBtn = document.getElementById("upload-btn");
+                            const fileInput = document.getElementById("image-upload");
+                            const statusDiv = document.getElementById("upload-status");
+                            const previewDiv = document.getElementById("image-preview");
+                            
+                            if (uploadBtn) {
+                                uploadBtn.addEventListener("click", function() {
+                                    if (!fileInput.files[0]) {
+                                        statusDiv.innerHTML = "<span style=\"color: #EF4444;\">⚠️ Please select a file first</span>";
+                                        return;
                                     }
-                                })
-                                .catch(error => {
-                                    statusDiv.innerHTML = "<span style=\"color: red;\">Upload failed: " + error.message + "</span>";
+                                    
+                                    const formData = new FormData();
+                                    formData.append("image", fileInput.files[0]);
+                                    formData.append("_token", document.querySelector("meta[name=csrf-token]").getAttribute("content"));
+                                    
+                                    statusDiv.innerHTML = "<span style=\"color: #3B82F6;\">⏳ Uploading to Cloudinary...</span>";
+                                    uploadBtn.disabled = true;
+                                    
+                                    fetch("/admin/upload-to-cloudinary", {
+                                        method: "POST",
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Find the image URL input field and update it
+                                            const imageUrlField = document.querySelector("input[id$=\"image\"]") || 
+                                                                document.querySelector("input[name=\"image\"]") ||
+                                                                document.querySelector("input[wire\\\\:model*=\"image\"]");
+                                            
+                                            if (imageUrlField) {
+                                                imageUrlField.value = data.url;
+                                                imageUrlField.dispatchEvent(new Event("input", { bubbles: true }));
+                                                imageUrlField.dispatchEvent(new Event("change", { bubbles: true }));
+                                            }
+                                            
+                                            statusDiv.innerHTML = "<span style=\"color: #10B981;\">✅ Upload successful!</span>";
+                                            previewDiv.innerHTML = "<img src=\"" + data.url + "\" style=\"max-width: 200px; max-height: 200px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);\">";
+                                            fileInput.value = "";
+                                        } else {
+                                            statusDiv.innerHTML = "<span style=\"color: #EF4444;\">❌ Error: " + data.error + "</span>";
+                                        }
+                                    })
+                                    .catch(error => {
+                                        statusDiv.innerHTML = "<span style=\"color: #EF4444;\">❌ Upload failed: " + error.message + "</span>";
+                                    })
+                                    .finally(() => {
+                                        uploadBtn.disabled = false;
+                                    });
                                 });
-                            });
+                            }
+                        });
                         </script>
                     '))
                     ->hiddenOn('view'),
