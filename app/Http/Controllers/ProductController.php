@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProductController extends Controller
 {
@@ -205,5 +206,34 @@ class ProductController extends Controller
         $product->active = 0;
         $product->save();
         return response()->json(['message' => 'Product deleted successfully'], 200);
+    }
+
+    public function showUploadForm()
+    {
+        return view('upload');
+    }
+
+    public function storeUploads(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'product_id' => 'required|exists:products,id' // if updating existing product
+        ]);
+    
+        try {
+            // Upload to Cloudinary
+            $response = Cloudinary::upload($request->file('file')->getRealPath())->getSecurePath();
+            
+            // Update the product in database
+            $product = Product::findOrFail($request->product_id);
+            $product->image = $response;
+            $product->save();
+            
+            return back()->with('success', 'File uploaded and product updated successfully');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Upload failed: ' . $e->getMessage());
+        }
     }
 }

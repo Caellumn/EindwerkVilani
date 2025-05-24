@@ -29,7 +29,15 @@ class ProductResource extends Resource
                 Forms\Components\Textarea::make('description')->required()->maxLength(400),
                 Forms\Components\TextInput::make('price')->required(),
                 Forms\Components\TextInput::make('stock')->required(),
-                Forms\Components\FileUpload::make('image')->nullable(),
+                Forms\Components\FileUpload::make('image')
+                    ->nullable()
+                    ->image()
+                    ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/gif'])
+                    ->disk('public')
+                    ->directory('products')
+                    ->visibility('public')
+                    ->helperText('Image will be automatically uploaded to Cloudinary when saved.'),
                 Forms\Components\Section::make('Categories')
                     ->schema([
                         Forms\Components\Select::make('categories')
