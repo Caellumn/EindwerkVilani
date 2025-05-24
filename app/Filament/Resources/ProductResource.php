@@ -29,15 +29,98 @@ class ProductResource extends Resource
                 Forms\Components\Textarea::make('description')->required()->maxLength(400),
                 Forms\Components\TextInput::make('price')->required(),
                 Forms\Components\TextInput::make('stock')->required(),
-                Forms\Components\FileUpload::make('image')
+                Forms\Components\TextInput::make('image')
                     ->nullable()
-                    ->image()
-                    ->maxSize(2048)
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/gif'])
-                    ->disk('public')
-                    ->directory('products')
-                    ->visibility('public')
-                    ->helperText('Image will be automatically uploaded to Cloudinary when saved.'),
+                    ->label('Image URL')
+                    ->helperText('The Cloudinary URL will appear here after upload')
+                    ->suffixAction(
+                        Forms\Components\Actions\Action::make('uploadToCloudinary')
+                            ->icon('heroicon-o-cloud-arrow-up')
+                            ->label('Upload Image')
+                            ->form([
+                                Forms\Components\FileUpload::make('cloudinary_file')
+                                    ->label('Select Image')
+                                    ->image()
+                                    ->required()
+                                    ->maxSize(2048)
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/gif']),
+                            ])
+                            ->action(function (array $data, Forms\Set $set) {
+                                if (!isset($data['cloudinary_file']) || empty($data['cloudinary_file'])) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Upload failed')
+                                        ->body('No file selected')
+                                        ->danger()
+                                        ->send();
+                                    return;
+                                }
+                                
+                                try {
+                                    // Get the uploaded file
+                                    $uploadedFile = $data['cloudinary_file'];
+                                    
+                                    // In DDEV/Docker, we need to work with the temporary uploaded file directly
+                                    if (is_string($uploadedFile)) {
+                                        // If it's a string path, try to find the file
+                                        $possiblePaths = [
+                                            storage_path('app/public/' . $uploadedFile),
+                                            storage_path('app/' . $uploadedFile),
+                                            $uploadedFile,
+                                            public_path('storage/' . $uploadedFile)
+                                        ];
+                                        
+                                        $filePath = null;
+                                        foreach ($possiblePaths as $path) {
+                                            if (file_exists($path)) {
+                                                $filePath = $path;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if (!$filePath) {
+                                            throw new \Exception('Could not locate uploaded file');
+                                        }
+                                    } else {
+                                        throw new \Exception('Unexpected file format received');
+                                    }
+                                    
+                                                                         // Upload to Cloudinary using direct approach
+                                    $cloudinary = new \Cloudinary\Cloudinary([
+                                        'cloud' => [
+                                            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                                            'api_key' => env('CLOUDINARY_API_KEY'), 
+                                            'api_secret' => env('CLOUDINARY_API_SECRET'),
+                                        ]
+                                    ]);
+                                    
+                                    $response = $cloudinary->uploadApi()->upload($filePath, [
+                                        'folder' => 'products',
+                                        'resource_type' => 'image'
+                                    ]);
+                                    
+                                    // Set the Cloudinary URL
+                                    $set('image', $response['secure_url']);
+                                    
+                                    // Clean up local file
+                                    if (file_exists($filePath)) {
+                                        unlink($filePath);
+                                    }
+                                    
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Upload successful')
+                                        ->body('Image uploaded to Cloudinary successfully')
+                                        ->success()
+                                        ->send();
+                                        
+                                } catch (\Exception $e) {
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Upload failed')
+                                        ->body('Error: ' . $e->getMessage())
+                                        ->danger()
+                                        ->send();
+                                }
+                            })
+                    ),
                 Forms\Components\Section::make('Categories')
                     ->schema([
                         Forms\Components\Select::make('categories')
