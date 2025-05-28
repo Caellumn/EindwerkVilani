@@ -4,14 +4,23 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request;
+use App\Http\Requests\BaseRequest;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register(): void
     {
-        //
+        // Bind our custom request class to override default behavior
+        $this->app->bind(Request::class, BaseRequest::class);
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
         if (app()->environment('production')) {

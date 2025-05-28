@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use App\Http\Requests\BaseRequest;
 use App\Models\User;
 use OpenApi\Annotations as OA;
 use App\Models\Service;
@@ -94,7 +95,7 @@ class BookingController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    public function index(BaseRequest $request)
     {
         // Validate parameters if present
         if ($request->has('gender') && !in_array($request->gender, ['male', 'female'])) {
