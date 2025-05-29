@@ -60,7 +60,7 @@ Route::get('/services/{serviceId}/categories', [ServiceCategoryApiController::cl
 Route::put('/services/{serviceId}/categories/sync', [ServiceCategoryApiController::class, 'sync']);
 Route::get('/services-with-categories', [ServiceCategoryApiController::class, 'servicesWithCategories']);
 Route::get('/service-categories', [ServiceCategoryApiController::class, 'serviceCategories']);
--
+
 // User Routes
 Route::apiResource('/users', UserController::class)->only(['store']);
 
