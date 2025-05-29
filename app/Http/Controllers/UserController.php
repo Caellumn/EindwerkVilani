@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use OpenApi\Annotations as OA;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -96,35 +97,38 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request
-        $request->validate([
+        // Fix: Get data from either request parameters or JSON
+        $requestData = !empty($request->all()) ? $request->all() : $request->json()->all();
+        
+        // Validate the request data
+        $validated = Validator::make($requestData, [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'gender' => 'required|in:male,female',
             'telephone' => 'required|string|max:20',
             'password' => 'required|string|min:8',
             'role' => 'sometimes|in:admin,user',
-        ]);
+        ])->validate();
 
         //check if email has already been used and if so return an error with 422 status code
-        if (User::where('email', $request->email)->exists()) {
+        if (User::where('email', $validated['email'])->exists()) {
             return response()->json(['error' => 'Email already exists'], 422);
         }
 
         //check if role is admin or user if something else return error 422
-        if ($request->has('role') && $request->role !== 'admin' && $request->role !== 'user') {
+        if (isset($validated['role']) && $validated['role'] !== 'admin' && $validated['role'] !== 'user') {
             return response()->json(['error' => 'Role must be admin or user'], 422);
         }
 
         //save a new user when giving the info name,email,gender,telephone,password
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'gender' => $request->gender,
-            'telephone' => $request->telephone,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'gender' => $validated['gender'],
+            'telephone' => $validated['telephone'],
+            'password' => Hash::make($validated['password']),
             //role is optional
-            'role' => $request->role ?? 'user',
+            'role' => $validated['role'] ?? 'user',
             'status' => 1,
         ]);
 

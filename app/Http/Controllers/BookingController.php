@@ -9,6 +9,7 @@ use App\Models\User;
 use OpenApi\Annotations as OA;
 use App\Models\Service;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class BookingController extends Controller
 {
@@ -204,10 +205,13 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+        // Fix: Get data from either request parameters or JSON
+        $requestData = !empty($request->all()) ? $request->all() : $request->json()->all();
+        
         try {
             // Convert custom date format if needed
-            if ($request->has('date') && preg_match('/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2} \d{1,2}h\d{1,2}m$/', $request->date)) {
-                $dateParts = explode(' ', $request->date);
+            if (isset($requestData['date']) && preg_match('/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2} \d{1,2}h\d{1,2}m$/', $requestData['date'])) {
+                $dateParts = explode(' ', $requestData['date']);
                 $timeParts = str_replace(['h', 'm'], [':', ''], $dateParts[1]);
                 
                 // Process the date part to handle single digits
@@ -224,11 +228,11 @@ class BookingController extends Controller
                     $dateOnly = "{$year}-{$month}-{$day}";
                 }
                 
-                $request->merge(['date' => $dateOnly . ' ' . $timeParts . ':00']);
+                $requestData['date'] = $dateOnly . ' ' . $timeParts . ':00';
             }
             
-            //validate the request
-            $validated = $request->validate([
+            //validate the request data
+            $validated = Validator::make($requestData, [
                 'date' => 'required|date|after_or_equal:now',
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
@@ -240,18 +244,17 @@ class BookingController extends Controller
                 'service_id' => 'sometimes|uuid|exists:services,id',
                 'end_time' => 'sometimes|date|after_or_equal:now|after_or_equal:date',
                 'force_create' => 'sometimes|boolean',
-
-            ]);
+            ])->validate();
 
             //if end time is not provided, calculate it based on the service time
-            if (!$request->has('end_time')) {
-                $service = Service::find($request->service_id);
+            if (!isset($validated['end_time'])) {
+                $service = Service::find($validated['service_id'] ?? null);
                 if ($service && $service->time) {
-                    $end_time = Carbon::parse($request->date)->addMinutes((int) $service->time);
+                    $end_time = Carbon::parse($validated['date'])->addMinutes((int) $service->time);
                     $validated['end_time'] = $end_time;
                 } else {
                     // If no service found or service has no time, set end_time same as start time
-                    $validated['end_time'] = Carbon::parse($request->date);
+                    $validated['end_time'] = Carbon::parse($validated['date']);
                 }
             }
 
@@ -260,7 +263,7 @@ class BookingController extends Controller
             $endTime = Carbon::parse($validated['end_time']);
             
             // Only check for overlaps if not forcing creation
-            if (!$request->has('force_create') || !$request->force_create) {
+            if (!isset($validated['force_create']) || !$validated['force_create']) {
                 $overlappingBookings = Booking::where('gender', $validated['gender'])
                     ->where('status', '!=', 'cancelled')
                     ->where(function ($query) use ($startTime, $endTime) {
