@@ -53,11 +53,30 @@ class BookingResource extends Resource
                             ->rule('after_or_equal:now')
                             ->validationMessages([
                                 'after_or_equal' => 'The booking date must be in the future.',
-                            ]),
+                            ])
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // Recalculate end time if auto-calculation is enabled and services are selected
+                                if ($get('auto_calculate_end_time') && $state && $get('services')) {
+                                    $services = $get('services');
+                                    $totalServiceTime = 0;
+                                    
+                                    if ($services && is_array($services) && count($services) > 0) {
+                                        $totalServiceTime = (int) \App\Models\Service::whereIn('id', $services)->sum('time');
+                                    }
+                                    
+                                    if ($totalServiceTime > 0) {
+                                        $endTime = \Carbon\Carbon::parse($state)->addMinutes($totalServiceTime);
+                                        $set('end_time', $endTime);
+                                    } else {
+                                        $set('end_time', $state);
+                                    }
+                                }
+                            }),
                             
                         Forms\Components\DateTimePicker::make('end_time')
                             ->label('End Time')
-                            ->helperText('This will be automatically calculated based on selected services')
+                            ->helperText('Leave empty to auto-calculate based on selected services')
                             ->minDate(now())
                             ->rules([
                                 'after_or_equal:now',
@@ -65,7 +84,38 @@ class BookingResource extends Resource
                             ])
                             ->validationMessages([
                                 'after_or_equal' => 'The end time must be in the future and after the start time.',
-                            ]),
+                            ])
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // If user manually sets an end time, disable auto-calculation
+                                if ($state) {
+                                    $set('auto_calculate_end_time', false);
+                                } else {
+                                    // If user clears the end time, enable auto-calculation
+                                    $set('auto_calculate_end_time', true);
+                                    
+                                    // Trigger recalculation immediately if we have date and services
+                                    if ($get('date') && $get('services')) {
+                                        $services = $get('services');
+                                        $totalServiceTime = 0;
+                                        
+                                        if ($services && is_array($services) && count($services) > 0) {
+                                            $totalServiceTime = (int) \App\Models\Service::whereIn('id', $services)->sum('time');
+                                        }
+                                        
+                                        if ($totalServiceTime > 0) {
+                                            $endTime = \Carbon\Carbon::parse($get('date'))->addMinutes($totalServiceTime);
+                                            $set('end_time', $endTime);
+                                        } else {
+                                            $set('end_time', $get('date'));
+                                        }
+                                    }
+                                }
+                            }),
+
+                        // Hidden field to track if end time should be auto-calculated
+                        Forms\Components\Hidden::make('auto_calculate_end_time')
+                            ->default(true),
                             
                         Forms\Components\Select::make('gender')
                             ->options([
@@ -95,10 +145,24 @@ class BookingResource extends Resource
                             ->relationship('services', 'name')
                             ->columns(2)
                             ->searchable()
-                            ->afterStateUpdated(function ($state, $record) {
-                                // Only recalculate if we have an existing record (editing)
-                                if ($record && $record->exists) {
-                                    $record->recalculateEndTime();
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                // Only auto-calculate if the flag is set (user hasn't manually set end time)
+                                if ($get('auto_calculate_end_time') && $get('date')) {
+                                    $totalServiceTime = 0;
+                                    
+                                    if ($state && is_array($state) && count($state) > 0) {
+                                        // Calculate total time of selected services
+                                        $totalServiceTime = (int) \App\Models\Service::whereIn('id', $state)->sum('time');
+                                    }
+                                    
+                                    if ($totalServiceTime > 0) {
+                                        $endTime = \Carbon\Carbon::parse($get('date'))->addMinutes($totalServiceTime);
+                                        $set('end_time', $endTime);
+                                    } else {
+                                        // If no services selected, set end time same as start time
+                                        $set('end_time', $get('date'));
+                                    }
                                 }
                             }),
                     ]),

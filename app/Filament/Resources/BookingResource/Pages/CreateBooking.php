@@ -14,6 +14,7 @@ class CreateBooking extends CreateRecord
     protected static string $resource = BookingResource::class;
     
     protected bool $overlapConfirmed = false;
+    protected bool $shouldAutoCalculateEndTime = true;
 
     protected function beforeCreate(): void
     {
@@ -24,24 +25,6 @@ class CreateBooking extends CreateRecord
 
         // Get the form data
         $data = $this->form->getState();
-        
-        // Calculate end time if not provided and services are selected
-        if (!isset($data['end_time']) && isset($data['date'])) {
-            // Calculate end time based on services
-            $totalServiceTime = 0;
-            if (isset($data['services']) && is_array($data['services'])) {
-                $totalServiceTime = \App\Models\Service::whereIn('id', $data['services'])->sum('time');
-            }
-            
-            if ($totalServiceTime > 0) {
-                $data['end_time'] = Carbon::parse($data['date'])->addMinutes($totalServiceTime);
-            } else {
-                $data['end_time'] = Carbon::parse($data['date']);
-            }
-            
-            // Update the form state with calculated end_time
-            $this->form->fill($data);
-        }
         
         // Check for overlapping bookings
         $startTime = Carbon::parse($data['date']);
@@ -170,11 +153,30 @@ class CreateBooking extends CreateRecord
 
     protected function afterCreate(): void
     {
-        // Calculate end time after creating the booking with services
-        $this->record->recalculateEndTime();
-        
         // Reset the overlap flag for next time
         $this->overlapConfirmed = false;
         $this->overlappingBookings = '';
+    }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // Store the auto-calculation preference for use in afterSave
+        $this->shouldAutoCalculateEndTime = $data['auto_calculate_end_time'] ?? true;
+        
+        // Remove the helper field before saving
+        unset($data['auto_calculate_end_time']);
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        // Refresh record to ensure relationships are loaded
+        $this->record->refresh();
+        
+        // Recalculate end time if auto-calculation was enabled
+        if ($this->shouldAutoCalculateEndTime) {
+            $this->record->recalculateEndTime();
+        }
     }
 }
