@@ -2,43 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BookingProduct;
 use App\Models\Booking;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use OpenApi\Annotations as OA;
 
 class BookingHasProductsController extends Controller
 {
     /**
-     * Display a listing of products for a specific booking.
+     * Display the products for a specific booking.
      * 
      * @OA\Get(
      *     path="/api/bookings/{bookingId}/products",
-     *     tags={"Bookings", "Products"},
      *     summary="Get products for a specific booking",
-     *     description="Returns all products associated with the specified booking",
+     *     description="Returns a list of products associated with a specific booking",
+     *     operationId="getProductsByBooking",
+     *     tags={"Booking Products"},
      *     @OA\Parameter(
      *         name="bookingId",
      *         in="path",
-     *         description="ID of the booking",
+     *         description="ID of booking to get products for",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="List of products",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="Product Name")
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Hair Shampoo")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
      *         description="Booking not found",
-     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Booking not found")
+     *         )
      *     )
      * )
      */
@@ -68,23 +72,26 @@ class BookingHasProductsController extends Controller
      * 
      * @OA\Get(
      *     path="/api/bookings-with-products",
-     *     tags={"Bookings", "Products"},
-     *     summary="Get all bookings with their products",
-     *     description="Returns all bookings with their associated products",
+     *     summary="Get all bookings with their associated products",
+     *     description="Returns a list of all bookings with their associated products (id and name only)",
+     *     operationId="getBookingsWithProducts",
+     *     tags={"Booking Products"},
      *     @OA\Response(
      *         response=200,
-     *         description="List of bookings with their products",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="Booking Name"),
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="John Doe Appointment"),
      *                 @OA\Property(
      *                     property="products",
      *                     type="array",
      *                     @OA\Items(
-     *                         @OA\Property(property="id", type="integer", example=1),
-     *                         @OA\Property(property="name", type="string", example="Product Name")
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                         @OA\Property(property="name", type="string", example="Hair Shampoo")
      *                     )
      *                 )
      *             )
@@ -121,34 +128,73 @@ class BookingHasProductsController extends Controller
      * 
      * @OA\Put(
      *     path="/api/bookings/{bookingId}/products/sync",
-     *     tags={"Bookings", "Products"},
      *     summary="Sync products for a booking",
-     *     description="Update the products associated with a specific booking",
+     *     description="Replace all current products associated with a booking with the provided set. Send empty array to remove all products.",
+     *     operationId="syncBookingProducts",
+     *     tags={"Booking Products"},
      *     @OA\Parameter(
      *         name="bookingId",
      *         in="path",
-     *         description="ID of the booking",
+     *         description="ID of booking to sync products for",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/BookingProductRequest")
+     *         description="Array of product IDs to associate with the booking",
+     *         @OA\JsonContent(
+     *             required={"products"},
+     *             @OA\Property(
+     *                 property="products",
+     *                 type="array",
+     *                 description="Array of product IDs. Send empty array [] to remove all products.",
+     *                 @OA\Items(type="string", format="uuid"),
+     *                 example={"123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"}
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Products synced successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/BookingProductResponse")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Products synced successfully"),
+     *             @OA\Property(
+     *                 property="booking",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(
+     *                     property="products",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                         @OA\Property(property="name", type="string", example="Hair Shampoo")
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
      *         description="Booking not found",
-     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Booking not found")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error or invalid product IDs",
-     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The products field is required"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "products": {"The products field is required"},
+     *                     "products.0": {"The selected products.0 is invalid."}
+     *                 }
+     *             )
+     *         )
      *     )
      * )
      */
@@ -242,15 +288,19 @@ class BookingHasProductsController extends Controller
      * 
      * @OA\Get(
      *     path="/api/booking-products",
-     *     tags={"Bookings", "Products"},
      *     summary="Get all products used in bookings",
-     *     description="Returns all products that are associated with at least one booking",
+     *     description="Returns a list of product names that are associated with at least one booking",
+     *     operationId="getProductsUsedInBookings",
+     *     tags={"Booking Products"},
      *     @OA\Response(
      *         response=200,
-     *         description="List of product names",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(type="string", example="Product Name")
+     *             @OA\Items(
+     *                 type="string",
+     *                 example="Hair Shampoo"
+     *             )
      *         )
      *     )
      * )

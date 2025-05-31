@@ -8,40 +8,45 @@ use App\Models\BookingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use OpenApi\Annotations as OA;
 
 
 class BookingHasServicesController extends Controller
 {
     /**
-     * Display a listing of services for a specific booking.
-     *
+     * Display the services for a specific booking.
+     * 
      * @OA\Get(
      *     path="/api/bookings/{bookingId}/services",
-     *     tags={"Bookings", "Services"},
      *     summary="Get services for a specific booking",
-     *     description="Returns all services associated with the specified booking",
+     *     description="Returns a list of services associated with a specific booking",
+     *     operationId="getServicesByBooking",
+     *     tags={"Booking Services"},
      *     @OA\Parameter(
      *         name="bookingId",
      *         in="path",
-     *         description="ID of the booking",
+     *         description="ID of booking to get services for",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="List of services",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="Service Name")
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Haircut")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
      *         description="Booking not found",
-     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Booking not found")
+     *         )
      *     )
      * )
      */
@@ -68,26 +73,29 @@ class BookingHasServicesController extends Controller
 
     /**
      * Display all bookings with their associated services.
-     *
+     * 
      * @OA\Get(
      *     path="/api/bookings-with-services",
-     *     tags={"Bookings", "Services"},
-     *     summary="Get all bookings with their services",
-     *     description="Returns all bookings with their associated services",
+     *     summary="Get all bookings with their associated services",
+     *     description="Returns a list of all bookings with their associated services (id and name only)",
+     *     operationId="getBookingsWithServices",
+     *     tags={"Booking Services"},
      *     @OA\Response(
      *         response=200,
-     *         description="List of bookings with their services",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="Booking Name"),
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="John Doe Appointment"),
      *                 @OA\Property(
      *                     property="services",
      *                     type="array",
      *                     @OA\Items(
-     *                         @OA\Property(property="id", type="integer", example=1),
-     *                         @OA\Property(property="name", type="string", example="Service Name")
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                         @OA\Property(property="name", type="string", example="Haircut")
      *                     )
      *                 )
      *             )
@@ -121,37 +129,76 @@ class BookingHasServicesController extends Controller
 
     /**
      * Update the services associated with a booking.
-     *
+     * 
      * @OA\Put(
      *     path="/api/bookings/{bookingId}/services/sync",
-     *     tags={"Bookings", "Services"},
      *     summary="Sync services for a booking",
-     *     description="Update the services associated with a specific booking. Automatically recalculates the booking end time based on the total duration of all selected services.",
+     *     description="Replace all current services associated with a booking with the provided set. Send empty array to remove all services. Also recalculates booking end time based on total service duration.",
+     *     operationId="syncBookingServices",
+     *     tags={"Booking Services"},
      *     @OA\Parameter(
      *         name="bookingId",
      *         in="path",
-     *         description="ID of the booking",
+     *         description="ID of booking to sync services for",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/BookingServiceRequest")
+     *         description="Array of service IDs to associate with the booking",
+     *         @OA\JsonContent(
+     *             required={"services"},
+     *             @OA\Property(
+     *                 property="services",
+     *                 type="array",
+     *                 description="Array of service IDs. Send empty array [] to remove all services.",
+     *                 @OA\Items(type="string", format="uuid"),
+     *                 example={"123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"}
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Services synced successfully and booking end time recalculated",
-     *         @OA\JsonContent(ref="#/components/schemas/BookingServiceResponse")
+     *         description="Services synced successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Services synced successfully"),
+     *             @OA\Property(
+     *                 property="booking",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(
+     *                     property="services",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                         @OA\Property(property="name", type="string", example="Haircut")
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
      *         description="Booking not found",
-     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Booking not found")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error or invalid service IDs",
-     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The services field is required"),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "services": {"The services field is required"},
+     *                     "services.0": {"The selected services.0 is invalid."}
+     *                 }
+     *             )
+     *         )
      *     )
      * )
      */
@@ -245,18 +292,22 @@ class BookingHasServicesController extends Controller
 
     /**
      * Get all services that are associated with at least one booking.
-     *
+     * 
      * @OA\Get(
      *     path="/api/booking-services",
-     *     tags={"Bookings", "Services"},
      *     summary="Get all services used in bookings",
-     *     description="Returns all services that are associated with at least one booking",
+     *     description="Returns a list of service names that are associated with at least one booking",
+     *     operationId="getServicesUsedInBookings",
+     *     tags={"Booking Services"},
      *     @OA\Response(
      *         response=200,
-     *         description="List of service names",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(type="string", example="Service Name")
+     *             @OA\Items(
+     *                 type="string",
+     *                 example="Haircut"
+     *             )
      *         )
      *     )
      * )

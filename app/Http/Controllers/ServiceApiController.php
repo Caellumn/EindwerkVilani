@@ -8,18 +8,31 @@ use OpenApi\Annotations as OA;
 
 class ServiceApiController extends Controller
 {
-   /**
-     * Display a listing of the resource.
+    /**
+     * Display a listing of active services.
      * 
      * @OA\Get(
-     *     path="/services",
+     *     path="/api/services",
+     *     summary="Get all active services",
+     *     description="Returns a list of all active services (active = 1)",
+     *     operationId="getActiveServices",
      *     tags={"Services"},
-     *     summary="Get all services",
-     *     description="Returns list of all active services",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Service"))
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Haircut"),
+     *                 @OA\Property(property="description", type="string", example="Professional haircut service"),
+     *                 @OA\Property(property="hairlength", type="string", example="short"),
+     *                 @OA\Property(property="price", type="number", format="float", example=25.00),
+     *                 @OA\Property(property="time", type="integer", nullable=true, example=30),
+     *                 @OA\Property(property="active", type="integer", example=1)
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -28,31 +41,44 @@ class ServiceApiController extends Controller
      *             @OA\Property(property="message", type="string", example="No services are active")
      *         )
      *     )
-      * )
-      */
+     * )
+     */
     public function index()
     {
+        $services = Service::where('active', 1)->get();
         
-        //if no services are active, return an error
-        if(Service::where('active', 1)->count() == 0){
+        if ($services->isEmpty()) {
             return response()->json(['message' => 'No services are active'], 404);
         }
-        // get all services where active is 1
-        return Service::where('active', 1)->get();
+        
+        return response()->json($services, 200);
     }
 
     /**
-     * Display a listing of all services.
+     * Display all services regardless of status.
      * 
      * @OA\Get(
-     *     path="/services/all",
+     *     path="/api/services/all",
+     *     summary="Get all services",
+     *     description="Returns a list of all services regardless of active status",
+     *     operationId="getAllServices",
      *     tags={"Services"},
-     *     summary="Get all services (including inactive)",
-     *     description="Returns list of all services regardless of active status",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Service"))
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Haircut"),
+     *                 @OA\Property(property="description", type="string", example="Professional haircut service"),
+     *                 @OA\Property(property="hairlength", type="string", example="short"),
+     *                 @OA\Property(property="price", type="number", format="float", example=25.00),
+     *                 @OA\Property(property="time", type="integer", nullable=true, example=30),
+     *                 @OA\Property(property="active", type="integer", example=1)
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -63,62 +89,56 @@ class ServiceApiController extends Controller
      *     )
      * )
      */
-    public function indexAll(){
-
-        //if not services are found return an error
-        if(Service::all()->count() == 0){
+    public function allServices()
+    {
+        $services = Service::all();
+        
+        if ($services->isEmpty()) {
             return response()->json(['message' => 'No services are found'], 404);
         }
-        return Service::all();
-    }   
+        
+        return response()->json($services, 200);
+    }
 
     /**
      * Store a newly created resource in storage.
      * 
      * @OA\Post(
-     *     path="/api/services", 
-     *     tags={"Services"},
+     *     path="/api/services",
      *     summary="Create a new service",
-     *     description="Creates a new service with duration-based pricing and returns the service details",
+     *     description="Creates a new service and optionally associates it with categories",
+     *     operationId="createService",
+     *     tags={"Services"},
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Required fields: name, description, hairlength, price, time. Optional fields: active",
+     *         description="Service creation data",
      *         @OA\JsonContent(
-     *             required={"name", "description", "hairlength", "price", "time"},
-     *             @OA\Property(property="name", type="string", example="Haircut", description="Required. Name of the service"),
-     *             @OA\Property(property="description", type="string", example="Basic haircut service", description="Required. Description of the service"),
-     *             @OA\Property(property="hairlength", type="string", enum={"short", "medium", "long"}, example="medium", description="Required. Target hair length category"),
-     *             @OA\Property(property="price", type="number", format="decimal", example=25.50, description="Required. Service price in euros"),
-     *             @OA\Property(property="time", type="integer", example=30, description="Required. Service duration in minutes (1-480)"),
-     *             @OA\Property(property="active", type="boolean", example=true, description="Optional. Service status (default: true)")
+     *             required={"name", "description", "hairlength", "price"},
+     *             @OA\Property(property="name", type="string", example="Haircut"),
+     *             @OA\Property(property="description", type="string", example="Professional haircut service"),
+     *             @OA\Property(property="hairlength", type="string", example="short", description="Hair length category"),
+     *             @OA\Property(property="price", type="number", format="float", example=25.00),
+     *             @OA\Property(property="categories", type="array", description="Optional array of category IDs", @OA\Items(type="string", format="uuid"))
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Service created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Service")
-     *     ),
-     *     @OA\Response(
-     *         response=409,
-     *         description="Service already exists",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Service already exists")
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Haircut"),
+     *             @OA\Property(property="description", type="string", example="Professional haircut service"),
+     *             @OA\Property(property="hairlength", type="string", example="short"),
+     *             @OA\Property(property="price", type="number", format="float", example=25.00),
+     *             @OA\Property(property="active", type="integer", example=1)
      *         )
      *     ),
      *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
+     *         response=400,
+     *         description="Service already exists",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The time field is required."),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 example={
-     *                     "name": {"The name field is required."},
-     *                     "hairlength": {"The selected hairlength is invalid."},
-     *                     "time": {"The time must be between 1 and 480."}
-     *                 }
-     *             )
+     *             @OA\Property(property="message", type="string", example="Service already exists")
      *         )
      *     )
      * )
@@ -158,21 +178,31 @@ class ServiceApiController extends Controller
      * Display the specified resource.
      * 
      * @OA\Get(
-     *     path="/services/{id}",
-     *     tags={"Services"},
+     *     path="/api/services/{id}",
      *     summary="Get service by ID",
      *     description="Returns a single service",
+     *     operationId="getServiceById",
+     *     tags={"Services"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of service to return",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Service")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Haircut"),
+     *             @OA\Property(property="description", type="string", example="Professional haircut service"),
+     *             @OA\Property(property="hairlength", type="string", example="short"),
+     *             @OA\Property(property="price", type="number", format="float", example=25.00),
+     *             @OA\Property(property="time", type="integer", nullable=true, example=30),
+     *             @OA\Property(property="active", type="integer", example=1)
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -191,9 +221,10 @@ class ServiceApiController extends Controller
      * 
      * @OA\Put(
      *     path="/api/services/{id}",
-     *     tags={"Services"},
      *     summary="Update an existing service",
-     *     description="Updates a service and returns the updated service details. All fields are optional for updates.",
+     *     description="Updates a service and optionally syncs its categories",
+     *     operationId="updateService",
+     *     tags={"Services"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -203,42 +234,29 @@ class ServiceApiController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Service update data - all fields are optional",
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Updated Haircut", description="Service name"),
-     *             @OA\Property(property="description", type="string", example="Updated haircut service description", description="Service description"),
-     *             @OA\Property(property="hairlength", type="string", enum={"short", "medium", "long"}, example="long", description="Target hair length category"),
-     *             @OA\Property(property="price", type="number", format="decimal", example=35.00, description="Service price in euros"),
-     *             @OA\Property(property="time", type="integer", example=45, description="Service duration in minutes (1-480)"),
-     *             @OA\Property(property="active", type="boolean", example=false, description="Service status")
+     *             @OA\Property(property="name", type="string", example="Updated Haircut"),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="hairlength", type="string", example="medium"),
+     *             @OA\Property(property="price", type="number", format="float", example=30.00),
+     *             @OA\Property(property="categories", type="array", description="Optional array of category IDs to sync", @OA\Items(type="string", format="uuid"))
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Service updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Service")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Updated Haircut"),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="hairlength", type="string", example="medium"),
+     *             @OA\Property(property="price", type="number", format="float", example=30.00)
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Service not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Service not found")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The selected hairlength is invalid."),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 example={
-     *                     "hairlength": {"The selected hairlength is invalid."},
-     *                     "time": {"The time must be between 1 and 480."}
-     *                 }
-     *             )
-     *         )
+     *         description="Service not found"
      *     )
      * )
      */
@@ -262,23 +280,30 @@ class ServiceApiController extends Controller
      * Remove the specified resource from storage.
      * 
      * @OA\Delete(
-     *     path="/services/{id}",
+     *     path="/api/services/{id}",
+     *     summary="Soft delete a service",
+     *     description="Soft deletes a service by setting active to 0",
+     *     operationId="deleteService",
      *     tags={"Services"},
-     *     summary="Delete a service",
-     *     description="Deletes a service by changing active to 0",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of service to delete",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Service deleted successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Service deleted successfully"),
-     *             @OA\Property(property="object", type="object", ref="#/components/schemas/Service")
+     *             @OA\Property(property="message", type="string", example="Service 'Haircut' deleted successfully"),
+     *             @OA\Property(
+     *                 property="object",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Haircut"),
+     *                 @OA\Property(property="active", type="integer", example=0)
+     *             )
      *         )
      *     ),
      *     @OA\Response(
