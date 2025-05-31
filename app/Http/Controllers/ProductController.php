@@ -62,7 +62,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::where('active', 1)->paginate(20);
+        return Product::where('active', 1)->paginate(10);
     }
 
     /**
