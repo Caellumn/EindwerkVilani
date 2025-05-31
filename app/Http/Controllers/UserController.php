@@ -7,6 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Info(
+ *     title="Kapsalon Vilani API",
+ *     version="1.0.0",
+ *     description="API for managing salon users, services, and appointments"
+ * )
+ */
 class UserController extends Controller
 {
     /**
@@ -59,7 +66,15 @@ class UserController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         description="User creation data",
-     *         @OA\JsonContent(ref="#/components/schemas/UserRequest")
+     *         @OA\JsonContent(
+     *             required={"name", "email", "gender", "telephone", "password"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345678"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="role", type="string", enum={"admin", "user"}, example="user", description="Optional field")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=201,
@@ -211,7 +226,13 @@ class UserController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         description="User update data - at least one field must be provided",
-     *         @OA\JsonContent(ref="#/components/schemas/UserUpdateRequest")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Doe", description="Optional"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com", description="Optional"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male", description="Optional"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345678", description="Optional"),
+     *             @OA\Property(property="role", type="string", enum={"admin", "user"}, example="user", description="Optional")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,

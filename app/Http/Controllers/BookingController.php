@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use Illuminate\Http\Request;
-use App\Http\Requests\BaseRequest;
 use App\Models\User;
-use OpenApi\Annotations as OA;
 use App\Models\Service;
+use App\Http\Requests\BaseRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use OpenApi\Annotations as OA;
 
 class BookingController extends Controller
 {
@@ -17,80 +19,87 @@ class BookingController extends Controller
      * 
      * @OA\Get(
      *     path="/api/bookings",
-     *     summary="Get a list of bookings with optional filters",
-     *     description="Returns a list of bookings. Can filter by date (year, month, day), name, gender, and status",
-     *     operationId="getBookingsList",
+     *     summary="Get bookings with optional filtering",
+     *     description="Returns a list of bookings with optional filtering by date, name, gender, and status",
+     *     operationId="getBookings",
      *     tags={"Bookings"},
      *     @OA\Parameter(
      *         name="year",
      *         in="query",
-     *         description="Filter bookings by year",
+     *         description="Filter by year",
      *         required=false,
-     *         @OA\Schema(type="integer", example=2023)
+     *         @OA\Schema(type="integer", example=2024)
      *     ),
      *     @OA\Parameter(
      *         name="month",
      *         in="query",
-     *         description="Filter bookings by month (1-12)",
+     *         description="Filter by month (1-12)",
      *         required=false,
-     *         @OA\Schema(type="integer", example=6)
+     *         @OA\Schema(type="integer", example=12)
      *     ),
      *     @OA\Parameter(
      *         name="day",
      *         in="query",
-     *         description="Filter bookings by day of month (1-31)",
+     *         description="Filter by day (1-31)",
      *         required=false,
-     *         @OA\Schema(type="integer", example=15)
+     *         @OA\Schema(type="integer", example=25)
      *     ),
      *     @OA\Parameter(
      *         name="name",
      *         in="query",
-     *         description="Filter bookings by customer name (partial match)",
+     *         description="Filter by name (partial match)",
      *         required=false,
      *         @OA\Schema(type="string", example="John")
      *     ),
      *     @OA\Parameter(
      *         name="gender",
      *         in="query",
-     *         description="Filter bookings by customer gender (male or female only)",
+     *         description="Filter by gender",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"male", "female"}, example="male")
+     *         @OA\Schema(type="string", enum={"male", "female"})
      *     ),
      *     @OA\Parameter(
      *         name="status",
      *         in="query",
-     *         description="Filter bookings by status (pending, confirmed, cancelled, or completed only)",
+     *         description="Filter by booking status",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="pending")
+     *         @OA\Schema(type="string", enum={"pending", "confirmed", "cancelled", "completed"})
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Booking")
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00"),
+     *                 @OA\Property(property="end_time", type="string", format="date-time", example="2024-12-25 11:00:00"),
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", example="john@example.com"),
+     *                 @OA\Property(property="telephone", type="string", example="+31612345678"),
+     *                 @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+     *                 @OA\Property(property="remarks", type="string", example="First time customer"),
+     *                 @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="confirmed"),
+     *                 @OA\Property(property="user_id", type="string", format="uuid", nullable=true),
+     *                 @OA\Property(property="service_id", type="string", format="uuid", nullable=true),
+     *                 @OA\Property(
+     *                     property="user",
+     *                     type="object",
+     *                     nullable=true,
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="email", type="string"),
+     *                     @OA\Property(property="telephone", type="string")
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error for query parameters",
+     *         description="Invalid filter parameters",
      *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="string",
-     *                 description="Error message describing the validation failure",
-     *                 example="status needs to be pending, confirmed, cancelled or completed"
-     *             ),
-     *             @OA\Examples(
-     *                 example="status_error",
-     *                 summary="Invalid status parameter",
-     *                 value={"error": "status needs to be pending, confirmed, cancelled or completed or gender needs to be male or female"}
-     *             ),
-     *             @OA\Examples(
-     *                 example="gender_error",
-     *                 summary="Invalid gender parameter",
-     *                 value={"error": "gender needs to be male or female"}
-     *             )
+     *             @OA\Property(property="error", type="string", example="gender needs to be male or female")
      *         )
      *     )
      * )
@@ -146,35 +155,63 @@ class BookingController extends Controller
      * @OA\Post(
      *     path="/api/bookings",
      *     summary="Create a new booking",
-     *     description="Creates a new booking with the provided information. Booking date must be in the future. Supports custom date formats like '2023-12-10 10h20m' or '2023/12/4 10h30m'. Automatically detects booking overlaps for the same gender and returns a warning that can be overridden with the force_create parameter.",
+     *     description="Creates a new booking with overlap detection and automatic end time calculation",
      *     operationId="createBooking",
      *     tags={"Bookings"},
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Booking data",
+     *         description="Booking creation data",
      *         @OA\JsonContent(
-     *             allOf={
-     *                 @OA\Schema(ref="#/components/schemas/BookingRequest"),
-     *                 @OA\Schema(
-     *                     @OA\Property(
-     *                         property="force_create",
-     *                         type="boolean",
-     *                         description="Set to true to create booking even when overlaps are detected",
-     *                         example=false
-     *                     )
-     *                 )
-     *             }
+     *             required={"date", "name", "email", "telephone", "gender", "remarks", "status"},
+     *             @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00", description="Booking start time (must be in the future). Also accepts format: 2024-12-25 10h00m"),
+     *             @OA\Property(property="name", type="string", example="John Doe", description="Customer name"),
+     *             @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345678"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+     *             @OA\Property(property="remarks", type="string", example="First time customer"),
+     *             @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="pending"),
+     *             @OA\Property(property="user_id", type="string", format="uuid", nullable=true, description="Optional existing user ID"),
+     *             @OA\Property(property="service_id", type="string", format="uuid", nullable=true, description="Optional service ID (for automatic end time calculation)"),
+     *             @OA\Property(property="end_time", type="string", format="date-time", nullable=true, example="2024-12-25 11:00:00", description="Optional end time (auto-calculated if service_id provided)"),
+     *             @OA\Property(property="force_create", type="boolean", example=false, description="Set to true to bypass overlap warnings")
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Booking created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Booking")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00"),
+     *             @OA\Property(property="end_time", type="string", format="date-time", example="2024-12-25 11:00:00"),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345678"),
+     *             @OA\Property(property="gender", type="string", example="male"),
+     *             @OA\Property(property="remarks", type="string", example="First time customer"),
+     *             @OA\Property(property="status", type="string", example="pending")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=409,
-     *         description="Booking overlap detected (same gender conflict)",
-     *         @OA\JsonContent(ref="#/components/schemas/BookingOverlapResponse")
+     *         description="Booking overlap detected",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="warning", type="string", example="overlapping_booking"),
+     *             @OA\Property(property="message", type="string", example="This booking overlaps with existing bookings for the same gender."),
+     *             @OA\Property(
+     *                 property="overlapping_bookings",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="start_time", type="string", example="10:00"),
+     *                     @OA\Property(property="end_time", type="string", example="11:00"),
+     *                     @OA\Property(property="date", type="string", example="25-12-2024")
+     *                 )
+     *             ),
+     *             @OA\Property(property="continue_anyway", type="boolean", example=false)
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -186,8 +223,8 @@ class BookingController extends Controller
      *                 type="object",
      *                 example={
      *                     "date": {"The date must be a date after or equal to now."},
-     *                     "gender": {"The selected gender is invalid."},
-     *                     "email": {"The email field is required."}
+     *                     "email": {"The email must be a valid email address."},
+     *                     "gender": {"The selected gender is invalid."}
      *                 }
      *             )
      *         )
@@ -197,7 +234,7 @@ class BookingController extends Controller
      *         description="Server error",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="An error occurred while creating the booking."),
-     *             @OA\Property(property="error", type="string", example="Error details")
+     *             @OA\Property(property="error", type="string", example="Database connection failed")
      *         )
      *     )
      * )
@@ -328,27 +365,46 @@ class BookingController extends Controller
      * @OA\Get(
      *     path="/api/bookings/{id}",
      *     summary="Get booking by ID",
-     *     description="Returns a single booking by ID with associated user details",
+     *     description="Returns a single booking with user details",
      *     operationId="getBookingById",
      *     tags={"Bookings"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID of the booking to return",
+     *         description="ID of booking to return",
      *         required=true,
      *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Booking")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00"),
+     *             @OA\Property(property="end_time", type="string", format="date-time", example="2024-12-25 11:00:00"),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345678"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+     *             @OA\Property(property="remarks", type="string", example="First time customer"),
+     *             @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="confirmed"),
+     *             @OA\Property(property="user_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(property="service_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(
+     *                 property="user",
+     *                 type="object",
+     *                 nullable=true,
+     *                 @OA\Property(property="id", type="string", format="uuid"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string"),
+     *                 @OA\Property(property="telephone", type="string")
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Booking not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Booking not found")
-     *         )
+     *         description="Booking not found"
      *     )
      * )
      */
@@ -362,34 +418,54 @@ class BookingController extends Controller
     /**
      * Update the specified resource in storage.
      * 
-     * @OA\Patch(
+     * @OA\Put(
      *     path="/api/bookings/{id}",
      *     summary="Update an existing booking",
-     *     description="Updates a booking with the provided information. At least one field must be provided.",
+     *     description="Updates a booking with validation. At least one field must be provided.",
      *     operationId="updateBooking",
      *     tags={"Bookings"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID of the booking to update",
+     *         description="ID of booking to update",
      *         required=true,
      *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Booking update data - at least one field must be provided",
-     *         @OA\JsonContent(ref="#/components/schemas/BookingUpdateRequest")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00", description="Booking start time (must be in the future)"),
+     *             @OA\Property(property="name", type="string", example="John Doe Updated"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.updated@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345679"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female"}, example="male"),
+     *             @OA\Property(property="remarks", type="string", example="Updated remarks"),
+     *             @OA\Property(property="status", type="string", enum={"pending", "confirmed", "cancelled", "completed"}, example="confirmed"),
+     *             @OA\Property(property="user_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(property="end_time", type="string", format="date-time", nullable=true, example="2024-12-25 11:00:00")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Booking updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Booking")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="date", type="string", format="date-time", example="2024-12-25 10:00:00"),
+     *             @OA\Property(property="end_time", type="string", format="date-time", example="2024-12-25 11:00:00"),
+     *             @OA\Property(property="name", type="string", example="John Doe Updated"),
+     *             @OA\Property(property="email", type="string", example="john.updated@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="+31612345679"),
+     *             @OA\Property(property="gender", type="string", example="male"),
+     *             @OA\Property(property="remarks", type="string", example="Updated remarks"),
+     *             @OA\Property(property="status", type="string", example="confirmed")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
      *         description="Booking or User not found",
      *         @OA\JsonContent(
-     *             @OA\Property(property="error", type="string", example="Booking not found")
+     *             @OA\Property(property="error", type="string", example="User not found")
      *         )
      *     ),
      *     @OA\Response(
@@ -400,11 +476,11 @@ class BookingController extends Controller
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="fields",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Please include at least one of: date, name, email, telephone, gender, remarks, status, end_time")
-     *                 )
+     *                 example={
+     *                     "fields": {"Please include at least one of: date, name, email, telephone, gender, remarks, status, end_time"},
+     *                     "date": {"The date must be a date after or equal to now."},
+     *                     "email": {"The email must be a valid email address."}
+     *                 }
      *             )
      *         )
      *     )
@@ -455,13 +531,13 @@ class BookingController extends Controller
      * @OA\Delete(
      *     path="/api/bookings/{id}",
      *     summary="Cancel a booking",
-     *     description="Cancels a booking by setting its status to 'cancelled'",
+     *     description="Soft deletes a booking by setting status to 'cancelled'",
      *     operationId="cancelBooking",
      *     tags={"Bookings"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID of the booking to cancel",
+     *         description="ID of booking to cancel",
      *         required=true,
      *         @OA\Schema(type="string", format="uuid")
      *     ),

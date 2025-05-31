@@ -249,42 +249,49 @@ Route::get('/direct-cloudinary-test', function () {
 });
 
 // Custom Cloudinary upload endpoint for Filament (DigitalOcean compatible)
-Route::post('/admin/upload-to-cloudinary', function (\Illuminate\Http\Request $request) {
-    try {
-        if (!$request->hasFile('image')) {
-            return response()->json(['error' => 'No file uploaded'], 400);
-        }
-        
-        $file = $request->file('image');
-        
-        // Validate file
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
-        // Upload directly to Cloudinary
-        $cloudinary = new \Cloudinary\Cloudinary([
-            'cloud' => [
-                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                'api_key' => env('CLOUDINARY_API_KEY'), 
-                'api_secret' => env('CLOUDINARY_API_SECRET'),
-            ]
-        ]);
-        
-        $response = $cloudinary->uploadApi()->upload($file->getRealPath(), [
-            'folder' => 'products',
-            'resource_type' => 'image'
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'url' => $response['secure_url'],
-            'public_id' => $response['public_id']
-        ]);
-        
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ], 500);
-    }
-})->middleware(['web']);
+// MOVED TO API ROUTES - /api/upload-to-cloudinary to avoid CSRF token issues
+
+// Simple Swagger documentation page that bypasses all L5-Swagger components
+Route::get('/docs-simple', function () {
+    $jsonUrl = url('/docs-simple/json');
+    
+    return response()->make("
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kapsalon Vilani API Documentation</title>
+    <link rel='stylesheet' type='text/css' href='https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css' />
+    <style>
+        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin:0; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <div id='swagger-ui'></div>
+    <script src='https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js'></script>
+    <script src='https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js'></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: '{$jsonUrl}',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: 'StandaloneLayout'
+            });
+        };
+    </script>
+</body>
+</html>", 200)->header('Content-Type', 'text/html');
+});
+
+Route::get('/docs-simple/json', function () {
+    return response()->file(storage_path('api-docs/api-docs.json'));
+});

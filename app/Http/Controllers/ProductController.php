@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
-use OpenApi\Annotations as OA;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use OpenApi\Annotations as OA;
 
 class ProductController extends Controller
 {
@@ -13,20 +13,32 @@ class ProductController extends Controller
      * Display a listing of the resource.
      * 
      * @OA\Get(
-     *     path="/products",
-     *     tags={"Products"},
+     *     path="/api/products",
      *     summary="Get all products",
-     *     description="Returns list of all products",
+     *     description="Returns a list of all products",
+     *     operationId="getProducts",
+     *     tags={"Products"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Product"))
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Shampoo"),
+     *                 @OA\Property(property="description", type="string", example="Professional hair shampoo"),
+     *                 @OA\Property(property="price", type="number", format="float", example=19.99),
+     *                 @OA\Property(property="stock", type="integer", example=50),
+     *                 @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg"),
+     *                 @OA\Property(property="active", type="integer", example=1)
+     *             )
+     *         )
      *     )
      * )
      */
     public function index()
     {
-        //
         return Product::all();
     }
 
@@ -34,26 +46,35 @@ class ProductController extends Controller
      * Store a newly created resource in storage.
      * 
      * @OA\Post(
-     *     path="/products",
-     *     tags={"Products"},
+     *     path="/api/products",
      *     summary="Create a new product",
      *     description="Creates a new product and returns the product details",
+     *     operationId="createProduct",
+     *     tags={"Products"},
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Required fields: name, description, price, stock. Optional field: image",
+     *         description="Product creation data",
      *         @OA\JsonContent(
      *             required={"name", "description", "price", "stock"},
-     *             @OA\Property(property="name", type="string", example="Shampoo", description="Required. Name of the product"),
-     *             @OA\Property(property="description", type="string", example="Something to wash your hair", description="Required. Description of the product"),
-     *             @OA\Property(property="price", type="number", format="float", example=9.99, description="Required. Price of the product"),
-     *             @OA\Property(property="stock", type="integer", example=50, description="Required. Number of items in stock"),
-     *             @OA\Property(property="image", type="string", example="shampoo.jpg", description="Optional. Image filename for the product")
+     *             @OA\Property(property="name", type="string", example="Shampoo"),
+     *             @OA\Property(property="description", type="string", example="Professional hair shampoo"),
+     *             @OA\Property(property="price", type="number", format="float", example=19.99),
+     *             @OA\Property(property="stock", type="integer", example=50),
+     *             @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg")
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Product created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Product")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Shampoo"),
+     *             @OA\Property(property="description", type="string", example="Professional hair shampoo"),
+     *             @OA\Property(property="price", type="number", format="float", example=19.99),
+     *             @OA\Property(property="stock", type="integer", example=50),
+     *             @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=400,
@@ -61,10 +82,6 @@ class ProductController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Product already exists")
      *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
      *     )
      * )
      */
@@ -95,21 +112,30 @@ class ProductController extends Controller
      * Display the specified resource.
      * 
      * @OA\Get(
-     *     path="/products/{id}",
-     *     tags={"Products"},
+     *     path="/api/products/{id}",
      *     summary="Get product by ID",
      *     description="Returns a single product",
+     *     operationId="getProductById",
+     *     tags={"Products"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of product to return",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Product")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Shampoo"),
+     *             @OA\Property(property="description", type="string", example="Professional hair shampoo"),
+     *             @OA\Property(property="price", type="number", format="float", example=19.99),
+     *             @OA\Property(property="stock", type="integer", example=50),
+     *             @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -119,7 +145,6 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //show me a single product in json format
         return $product;
     }
 
@@ -127,31 +152,40 @@ class ProductController extends Controller
      * Update the specified resource in storage.
      * 
      * @OA\Put(
-     *     path="/products/{id}",
-     *     tags={"Products"},
+     *     path="/api/products/{id}",
      *     summary="Update an existing product",
      *     description="Updates a product and returns the updated product details",
+     *     operationId="updateProduct",
+     *     tags={"Products"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of product to update",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="name", type="string", example="Updated Shampoo"),
      *             @OA\Property(property="description", type="string", example="Updated description"),
-     *             @OA\Property(property="price", type="number", example=19.99),
-     *             @OA\Property(property="stock", type="integer", example=100),
-     *             @OA\Property(property="image", type="string", example="updated-shampoo.jpg")
+     *             @OA\Property(property="price", type="number", format="float", example=21.99),
+     *             @OA\Property(property="stock", type="integer", example=75),
+     *             @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/new-image.jpg")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Product updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Product")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Updated Shampoo"),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="price", type="number", format="float", example=21.99),
+     *             @OA\Property(property="stock", type="integer", example=75),
+     *             @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/new-image.jpg")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -161,8 +195,6 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        // $product = Product::find($product);
-        
         $product->name = $request->name;
         $product->description = $request->description;
         $product->price = $request->price;
@@ -176,16 +208,17 @@ class ProductController extends Controller
      * Remove the specified resource from storage.
      * 
      * @OA\Delete(
-     *     path="/products/{id}",
-     *     tags={"Products"},
+     *     path="/api/products/{id}",
      *     summary="Soft delete a product",
-     *     description="Marks a product as inactive (soft delete) instead of removing it from the database",
+     *     description="Soft deletes a product by setting active to 0",
+     *     operationId="deleteProduct",
+     *     tags={"Products"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID of product to delete",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -202,17 +235,75 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //remove a product from the database by name
         $product->active = 0;
         $product->save();
         return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 
+    /**
+     * Show upload form (web route).
+     * 
+     * @OA\Get(
+     *     path="/products/upload",
+     *     summary="Show product image upload form",
+     *     description="Returns the upload form view (web interface)",
+     *     operationId="showUploadForm",
+     *     tags={"Products"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Upload form view",
+     *         @OA\MediaType(
+     *             mediaType="text/html"
+     *         )
+     *     )
+     * )
+     */
     public function showUploadForm()
     {
         return view('upload');
     }
 
+    /**
+     * Store uploaded file to Cloudinary and update product.
+     * 
+     * @OA\Post(
+     *     path="/products/upload",
+     *     summary="Upload product image to Cloudinary",
+     *     description="Uploads an image file to Cloudinary and updates the product's image URL",
+     *     operationId="storeUploads",
+     *     tags={"Products"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"file", "product_id"},
+     *                 @OA\Property(property="file", type="string", format="binary", description="Image file (jpeg, png, jpg, gif, max 2MB)"),
+     *                 @OA\Property(property="product_id", type="string", format="uuid", description="ID of existing product to update")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect back with success message"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 example={
+     *                     "file": {"The file must be an image."},
+     *                     "product_id": {"The selected product_id is invalid."}
+     *                 }
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function storeUploads(Request $request)
     {
         // Validate the request

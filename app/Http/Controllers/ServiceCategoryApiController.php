@@ -159,23 +159,25 @@ class ServiceCategoryApiController extends Controller
      *     path="/api/services/{serviceId}/categories/sync",
      *     tags={"Service Categories"},
      *     summary="Sync categories for a service",
+     *     description="Replace all current categories associated with a service with the provided set. Send empty array to remove all categories.",
+     *     operationId="syncServiceCategories",
      *     @OA\Parameter(
      *         name="serviceId",
      *         in="path",
-     *         description="ID of service",
+     *         description="ID of service to sync categories for",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Add and remove categories. Send an array of category ids to add and/or change the current categories, send an empty array to remove all.",
+     *         description="Array of category IDs to associate with the service",
      *         @OA\JsonContent(
      *             required={"categories"},
      *             @OA\Property(
      *                 property="categories",
      *                 type="array",
-     *                 description="Array of category IDs. Send an empty array [] to remove all categories.",
-     *                 @OA\Items(type="string"),
+     *                 description="Array of category IDs. Send empty array [] to remove all categories.",
+     *                 @OA\Items(type="string", format="uuid"),
      *                 example={"123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"}
      *             )
      *         )
@@ -188,19 +190,19 @@ class ServiceCategoryApiController extends Controller
      *             @OA\Property(
      *                 property="service",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
-     *                 @OA\Property(property="name", type="string", example="Service Name"),
-     *                 @OA\Property(property="description", type="string", example="Service description"),
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Haircut"),
+     *                 @OA\Property(property="description", type="string", example="Professional haircut service"),
      *                 @OA\Property(property="hairlength", type="string", example="medium"),
-     *                 @OA\Property(property="price", type="number", format="float", example=99.99),
+     *                 @OA\Property(property="price", type="number", format="float", example=25.00),
      *                 @OA\Property(property="active", type="integer", example=1),
      *                 @OA\Property(
      *                     property="categories",
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
-     *                         @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
-     *                         @OA\Property(property="name", type="string", example="Category Name")
+     *                         @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                         @OA\Property(property="name", type="string", example="Hair Care")
      *                     )
      *                 )
      *             )
@@ -208,14 +210,9 @@ class ServiceCategoryApiController extends Controller
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Service not found or category not found",
+     *         description="Service not found",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Service not found"),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 example={"categories.0": {"The selected categories.0 is invalid."}}
-     *             )
+     *             @OA\Property(property="message", type="string", example="Service not found")
      *         )
      *     ),
      *     @OA\Response(
@@ -226,7 +223,10 @@ class ServiceCategoryApiController extends Controller
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 example={"categories": {"The categories field is required"}}
+     *                 example={
+     *                     "categories": {"The categories field is required"},
+     *                     "categories.0": {"The selected categories.0 is invalid."}
+     *                 }
      *             )
      *         )
      *     )
@@ -278,7 +278,7 @@ class ServiceCategoryApiController extends Controller
                 return response()->json([
                     'message' => 'One or more category IDs are invalid',
                     'errors' => $validator->errors()
-                ], 404);
+                ], 422);
             }
             
             // Convert the array of category IDs into a collection with pivot data

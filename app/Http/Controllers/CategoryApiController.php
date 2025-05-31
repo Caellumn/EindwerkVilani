@@ -6,12 +6,6 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
-/**
- * @OA\Tag(
- *     name="Categories",
- *     description="API Endpoints for managing categories"
- * )
- */
 class CategoryApiController extends Controller
 {
     /**
@@ -20,16 +14,18 @@ class CategoryApiController extends Controller
      * @OA\Get(
      *     path="/api/categories",
      *     summary="Get all categories",
+     *     description="Returns a list of all categories",
+     *     operationId="getCategories",
      *     tags={"Categories"},
      *     @OA\Response(
      *         response=200,
-     *         description="List of categories",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
-     *                 @OA\Property(property="name", type="string", example="Category Name"),
+     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                 @OA\Property(property="name", type="string", example="Hair Care"),
      *                 @OA\Property(property="active", type="integer", example=1)
      *             )
      *         )
@@ -66,25 +62,16 @@ class CategoryApiController extends Controller
      * @OA\Post(
      *     path="/api/categories",
      *     summary="Create a new category",
-     *     description="Creates a new category. Only the name field is mandatory, active is optional.",
+     *     description="Creates a new category with validation",
+     *     operationId="createCategory",
      *     tags={"Categories"},
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Category data",
+     *         description="Category creation data",
      *         @OA\JsonContent(
      *             required={"name"},
-     *             @OA\Property(
-     *                 property="name", 
-     *                 type="string", 
-     *                 example="New Category",
-     *                 description="Category name (Required)"
-     *             ),
-     *             @OA\Property(
-     *                 property="active", 
-     *                 type="integer", 
-     *                 example=1, 
-     *                 description="Category status (Optional, default: 1)"
-     *             )
+     *             @OA\Property(property="name", type="string", example="Hair Care", description="Category name (must be unique)"),
+     *             @OA\Property(property="active", type="boolean", example=true, description="Active status (optional, defaults to true)")
      *         )
      *     ),
      *     @OA\Response(
@@ -92,20 +79,22 @@ class CategoryApiController extends Controller
      *         description="Category created successfully",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="id", type="integer", example=1),
-     *             @OA\Property(property="name", type="string", example="New Category"),
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Hair Care"),
      *             @OA\Property(property="active", type="integer", example=1)
      *         )
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error - Invalid or missing fields",
+     *         description="Validation failed",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The name field is required"),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 example={"name": {"The name field is required"}}
+     *                 example={
+     *                     "name": {"The name field is required.", "The name has already been taken."}
+     *                 }
      *             )
      *         )
      *     )
@@ -141,23 +130,25 @@ class CategoryApiController extends Controller
      * Display the specified resource.
      * 
      * @OA\Get(
-     *     path="/api/categories/{categoryId}",
-     *     summary="Get a specific category by ID",
+     *     path="/api/categories/{id}",
+     *     summary="Get category by ID",
+     *     description="Returns a single category",
+     *     operationId="getCategoryById",
      *     tags={"Categories"},
      *     @OA\Parameter(
-     *         name="categoryId",
+     *         name="id",
      *         in="path",
      *         description="ID of category to return",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Category details",
+     *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
-     *             @OA\Property(property="name", type="string", example="Category Name"),
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Hair Care"),
      *             @OA\Property(property="active", type="integer", example=1)
      *         )
      *     ),
@@ -192,23 +183,24 @@ class CategoryApiController extends Controller
      * Update the specified resource in storage.
      * 
      * @OA\Put(
-     *     path="/api/categories/{categoryId}",
+     *     path="/api/categories/{id}",
      *     summary="Update an existing category",
-     *     description="Updates an existing category. name is required.",
+     *     description="Updates a category with validation",
+     *     operationId="updateCategory",
      *     tags={"Categories"},
      *     @OA\Parameter(
-     *         name="categoryId",
+     *         name="id",
      *         in="path",
      *         description="ID of category to update",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Category data. name is required.",
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="Updated Category Name"),
-     *             @OA\Property(property="active", type="integer", example=1, description="Optional field")
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Updated Hair Care"),
+     *             @OA\Property(property="active", type="integer", example=1)
      *         )
      *     ),
      *     @OA\Response(
@@ -216,8 +208,8 @@ class CategoryApiController extends Controller
      *         description="Category updated successfully",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="id", type="string", example="123e4567-e89b-12d3-a456-426614174000"),
-     *             @OA\Property(property="name", type="string", example="Updated Category Name"),
+     *             @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *             @OA\Property(property="name", type="string", example="Updated Hair Care"),
      *             @OA\Property(property="active", type="integer", example=1)
      *         )
      *     ),
@@ -230,13 +222,15 @@ class CategoryApiController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error - Invalid fields",
+     *         description="Validation failed",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Validation failed"),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 example={"name": {"The name field must be unique"}}
+     *                 example={
+     *                     "name": {"The name has already been taken."}
+     *                 }
      *             )
      *         )
      *     )
@@ -282,19 +276,21 @@ class CategoryApiController extends Controller
      * Remove the specified resource from storage.
      * 
      * @OA\Delete(
-     *     path="/api/categories/{categoryId}",
-     *     summary="Deactivate a category (soft delete)",
+     *     path="/api/categories/{id}",
+     *     summary="Soft delete a category",
+     *     description="Soft deletes a category by setting active to 0",
+     *     operationId="deleteCategory",
      *     tags={"Categories"},
      *     @OA\Parameter(
-     *         name="categoryId",
+     *         name="id",
      *         in="path",
-     *         description="ID of category to deactivate",
+     *         description="ID of category to delete",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=204,
-     *         description="Category deactivated successfully"
+     *         description="Category deleted successfully (No Content)"
      *     ),
      *     @OA\Response(
      *         response=404,
