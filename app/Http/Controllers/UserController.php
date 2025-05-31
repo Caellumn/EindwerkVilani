@@ -112,10 +112,13 @@ class UserController extends Controller
     public function store(Request $request)
     {
         // WORKAROUND: Get data from JSON since request parsing is broken
-        $jsonData = $request->json()->all();
-        if (!empty($jsonData)) {
-            // Merge JSON data into request
-            $request->merge($jsonData);
+        // Only apply for JSON requests to avoid interfering with file uploads
+        if ($request->isJson() || $request->header('Content-Type') === 'application/json' || !empty($request->getContent())) {
+            $jsonData = $request->json()->all();
+            if (!empty($jsonData)) {
+                // Merge JSON data into request
+                $request->merge($jsonData);
+            }
         }
         
         // Validate the request
