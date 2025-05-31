@@ -14,24 +14,47 @@ class ProductController extends Controller
      * 
      * @OA\Get(
      *     path="/api/products",
-     *     summary="Get all products",
-     *     description="Returns a list of all products",
+     *     summary="Get all active products",
+     *     description="Returns a paginated list of active products (max 20 per page)",
      *     operationId="getProducts",
      *     tags={"Products"},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number for pagination",
+     *         required=false,
+     *         @OA\Schema(type="integer", minimum=1, example=1)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
-     *                 @OA\Property(property="name", type="string", example="Shampoo"),
-     *                 @OA\Property(property="description", type="string", example="Professional hair shampoo"),
-     *                 @OA\Property(property="price", type="number", format="float", example=19.99),
-     *                 @OA\Property(property="stock", type="integer", example=50),
-     *                 @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg"),
-     *                 @OA\Property(property="active", type="integer", example=1)
+     *             type="object",
+     *             @OA\Property(property="data", type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid", example="123e4567-e89b-12d3-a456-426614174000"),
+     *                     @OA\Property(property="name", type="string", example="Shampoo"),
+     *                     @OA\Property(property="description", type="string", example="Professional hair shampoo"),
+     *                     @OA\Property(property="price", type="number", format="float", example=19.99),
+     *                     @OA\Property(property="stock", type="integer", example=50),
+     *                     @OA\Property(property="image", type="string", nullable=true, example="https://cloudinary.com/image.jpg"),
+     *                     @OA\Property(property="active", type="integer", example=1)
+     *                 )
+     *             ),
+     *             @OA\Property(property="links", type="object",
+     *                 @OA\Property(property="first", type="string", example="http://example.com/api/products?page=1"),
+     *                 @OA\Property(property="last", type="string", example="http://example.com/api/products?page=10"),
+     *                 @OA\Property(property="prev", type="string", nullable=true, example="http://example.com/api/products?page=1"),
+     *                 @OA\Property(property="next", type="string", nullable=true, example="http://example.com/api/products?page=3")
+     *             ),
+     *             @OA\Property(property="meta", type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=2),
+     *                 @OA\Property(property="from", type="integer", example=21),
+     *                 @OA\Property(property="last_page", type="integer", example=10),
+     *                 @OA\Property(property="per_page", type="integer", example=20),
+     *                 @OA\Property(property="to", type="integer", example=40),
+     *                 @OA\Property(property="total", type="integer", example=200)
      *             )
      *         )
      *     )
@@ -39,7 +62,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::all();
+        return Product::where('active', 1)->paginate(20);
     }
 
     /**

@@ -801,6 +801,306 @@
                 }
             }
         },
+        "/api/bookings/full-store": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Create a new booking with products and/or services",
+                "description": "Creates a new booking with overlap detection and attaches products and/or services. At least one product or service must be provided.",
+                "operationId": "fullStoreBooking",
+                "requestBody": {
+                    "description": "Booking creation data with products and/or services",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date",
+                                    "name",
+                                    "email",
+                                    "telephone",
+                                    "gender",
+                                    "remarks",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "date": {
+                                        "description": "Booking start time (must be in the future). Also accepts format: 2024-12-25 10h00m",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-12-25 10:00:00"
+                                    },
+                                    "name": {
+                                        "description": "Customer name",
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "telephone": {
+                                        "type": "string",
+                                        "example": "+31612345678"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ],
+                                        "example": "male"
+                                    },
+                                    "remarks": {
+                                        "type": "string",
+                                        "example": "First time customer"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "confirmed",
+                                            "cancelled",
+                                            "completed"
+                                        ],
+                                        "example": "pending"
+                                    },
+                                    "user_id": {
+                                        "description": "Optional existing user ID",
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "end_time": {
+                                        "description": "Optional end time (auto-calculated if services provided)",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2024-12-25 11:00:00",
+                                        "nullable": true
+                                    },
+                                    "force_create": {
+                                        "description": "Set to true to bypass overlap warnings",
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "services": {
+                                        "description": "Array of service IDs. At least one service or product must be provided.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "example": [
+                                            "123e4567-e89b-12d3-a456-426614174000",
+                                            "123e4567-e89b-12d3-a456-426614174001"
+                                        ]
+                                    },
+                                    "products": {
+                                        "description": "Array of product IDs. At least one service or product must be provided.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "example": [
+                                            "123e4567-e89b-12d3-a456-426614174002",
+                                            "123e4567-e89b-12d3-a456-426614174003"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Booking created successfully with products and/or services",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "format": "uuid",
+                                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-12-25 10:00:00"
+                                        },
+                                        "end_time": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-12-25 11:00:00"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "John Doe"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "john@example.com"
+                                        },
+                                        "telephone": {
+                                            "type": "string",
+                                            "example": "+31612345678"
+                                        },
+                                        "gender": {
+                                            "type": "string",
+                                            "example": "male"
+                                        },
+                                        "remarks": {
+                                            "type": "string",
+                                            "example": "First time customer"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "pending"
+                                        },
+                                        "services": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "products": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Booking overlap detected",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "warning": {
+                                            "type": "string",
+                                            "example": "overlapping_booking"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "This booking overlaps with existing bookings for the same gender."
+                                        },
+                                        "overlapping_bookings": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "start_time": {
+                                                        "type": "string",
+                                                        "example": "10:00"
+                                                    },
+                                                    "end_time": {
+                                                        "type": "string",
+                                                        "example": "11:00"
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "example": "25-12-2024"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "continue_anyway": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "date": [
+                                                    "The date must be a date after or equal to now."
+                                                ],
+                                                "email": [
+                                                    "The email must be a valid email address."
+                                                ],
+                                                "services_or_products": [
+                                                    "At least one service or product must be provided."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while creating the booking."
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Database connection failed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/bookings/{bookingId}/products": {
             "get": {
                 "tags": [
@@ -2024,52 +2324,122 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Get all products",
-                "description": "Returns a list of all products",
+                "summary": "Get all active products",
+                "description": "Returns a paginated list of active products (max 20 per page)",
                 "operationId": "getProducts",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 1
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful operation",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "type": "string",
-                                                "format": "uuid",
-                                                "example": "123e4567-e89b-12d3-a456-426614174000"
-                                            },
-                                            "name": {
-                                                "type": "string",
-                                                "example": "Shampoo"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "example": "Professional hair shampoo"
-                                            },
-                                            "price": {
-                                                "type": "number",
-                                                "format": "float",
-                                                "example": 19.99
-                                            },
-                                            "stock": {
-                                                "type": "integer",
-                                                "example": 50
-                                            },
-                                            "image": {
-                                                "type": "string",
-                                                "example": "https://cloudinary.com/image.jpg",
-                                                "nullable": true
-                                            },
-                                            "active": {
-                                                "type": "integer",
-                                                "example": 1
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "example": "123e4567-e89b-12d3-a456-426614174000"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Shampoo"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Professional hair shampoo"
+                                                    },
+                                                    "price": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 19.99
+                                                    },
+                                                    "stock": {
+                                                        "type": "integer",
+                                                        "example": 50
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "example": "https://cloudinary.com/image.jpg",
+                                                        "nullable": true
+                                                    },
+                                                    "active": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "type": "object"
                                             }
                                         },
-                                        "type": "object"
-                                    }
+                                        "links": {
+                                            "properties": {
+                                                "first": {
+                                                    "type": "string",
+                                                    "example": "http://example.com/api/products?page=1"
+                                                },
+                                                "last": {
+                                                    "type": "string",
+                                                    "example": "http://example.com/api/products?page=10"
+                                                },
+                                                "prev": {
+                                                    "type": "string",
+                                                    "example": "http://example.com/api/products?page=1",
+                                                    "nullable": true
+                                                },
+                                                "next": {
+                                                    "type": "string",
+                                                    "example": "http://example.com/api/products?page=3",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 21
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 40
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 200
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
