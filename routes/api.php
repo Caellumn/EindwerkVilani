@@ -67,6 +67,7 @@ Route::apiResource('/users', UserController::class)->only(['store']);
 
 // Booking Routes
 Route::apiResource('/bookings', BookingController::class)->only(['index', 'show', 'store', 'destroy','update']);
+Route::post('/bookings/full-store', [BookingController::class, 'fullStore']);
 
 // // Booking Has Products Routes
 // Route::get('/bookings/{bookingId}/products', [BookingHasProductsController::class, 'index']);
@@ -145,7 +146,7 @@ Route::post('/token', function (Request $request) {
 // CSRF Token endpoint for frontend applications
 Route::get('/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
-});
+})->middleware(['web']);
 
 // Cloudinary upload endpoint (no CSRF required in API routes)
 Route::post('/upload-to-cloudinary', function (\Illuminate\Http\Request $request) {
