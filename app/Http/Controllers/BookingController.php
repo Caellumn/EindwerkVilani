@@ -733,7 +733,12 @@ class BookingController extends Controller
                     $dateOnly = "{$year}-{$month}-{$day}";
                 }
                 
-                $request->merge(['date' => $dateOnly . ' ' . $timeParts . ':00']);
+                // Create timezone-aware Carbon instance
+                $dateTimeString = $dateOnly . ' ' . $timeParts . ':00';
+                $carbonDate = Carbon::createFromFormat('Y-m-d H:i:s', $dateTimeString, config('app.timezone'));
+                
+                // Convert to database format (should maintain timezone awareness)
+                $request->merge(['date' => $carbonDate->toDateTimeString()]);
             }
 
             // Validate that at least one service or product is provided
