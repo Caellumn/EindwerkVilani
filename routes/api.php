@@ -66,7 +66,7 @@ Route::get('/service-categories', [ServiceCategoryApiController::class, 'service
 Route::apiResource('/users', UserController::class)->only(['store']);
 
 // Booking Routes
-Route::apiResource('/bookings', BookingController::class)->only(['index', 'show', 'store', 'destroy','update']);
+Route::apiResource('/bookings', BookingController::class)->only(['index', 'store']);
 Route::post('/bookings/full-store', [BookingController::class, 'fullStore']);
 
 // // Booking Has Products Routes
@@ -108,7 +108,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::put('/products/{productId}/categories/sync', [ProductCategoryApiController::class, 'sync'])->middleware('admin');
 
     // bookings routes behind middleware
-    Route::get('/bookings', [BookingController::class, 'index'])->middleware('admin');
     Route::apiResource('/bookings', BookingController::class)->only(['show', 'destroy', 'update'])->middleware('admin');
 
 
