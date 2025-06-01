@@ -15,7 +15,7 @@ class ProductController extends Controller
      * @OA\Get(
      *     path="/api/products",
      *     summary="Get all active products",
-     *     description="Returns a paginated list of active products (max 20 per page)",
+     *     description="Returns a paginated list of active products (max 10 per page)",
      *     operationId="getProducts",
      *     tags={"Products"},
      *     @OA\Parameter(
@@ -50,11 +50,11 @@ class ProductController extends Controller
      *             ),
      *             @OA\Property(property="meta", type="object",
      *                 @OA\Property(property="current_page", type="integer", example=2),
-     *                 @OA\Property(property="from", type="integer", example=21),
+     *                 @OA\Property(property="from", type="integer", example=11),
      *                 @OA\Property(property="last_page", type="integer", example=10),
-     *                 @OA\Property(property="per_page", type="integer", example=20),
-     *                 @OA\Property(property="to", type="integer", example=40),
-     *                 @OA\Property(property="total", type="integer", example=200)
+     *                 @OA\Property(property="per_page", type="integer", example=10),
+     *                 @OA\Property(property="to", type="integer", example=20),
+     *                 @OA\Property(property="total", type="integer", example=100)
      *             )
      *         )
      *     )
