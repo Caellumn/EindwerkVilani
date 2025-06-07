@@ -27,41 +27,116 @@ class ServiceResource extends Resource
                 Forms\Components\Section::make('Basic Information')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'string',
+                                'max:255',
+                                'min:2',
+                                'regex:/^[a-zA-ZÀ-ÿ0-9\s\'-\.\/\(\)]+$/u', // Allow letters, numbers, spaces, common punctuation
+                            ])
+                            ->validationMessages([
+                                'required' => 'Please enter the service name.',
+                                'min' => 'Service name must be at least 2 characters long.',
+                                'max' => 'Service name cannot exceed 255 characters.',
+                                'regex' => 'Service name can only contain letters, numbers, spaces, and common punctuation.',
+                            ])
+                            ->placeholder('e.g., Hair Cut & Style'),
+                            
                         Forms\Components\Textarea::make('description')
-                            ->required()
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->rows(4)
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'string',
+                                'min:10',
+                                'max:1000',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Please enter a service description.',
+                                'min' => 'Description must be at least 10 characters long.',
+                                'max' => 'Description cannot exceed 1000 characters.',
+                            ])
+                            ->helperText('Describe what this service includes and any special details (10-1000 characters)')
+                            ->placeholder('Enter a detailed description of the service...'),
                     ])
                     ->columns(2),
                 
                 Forms\Components\Section::make('Service Details')
                     ->schema([
                         Forms\Components\Select::make('hairlength')
-                            ->required()
                             ->options([
                                 'short' => 'Short',
                                 'medium' => 'Medium',
                                 'long' => 'Long',
                             ])
-                            ->searchable(),
+                            ->searchable()
+                            ->live()
+                            ->rules([
+                                'required',
+                                'in:short,medium,long',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Please select the hair length category.',
+                                'in' => 'Please select a valid hair length option.',
+                            ])
+                            ->helperText('Select the hair length this service is designed for'),
+                            
                         Forms\Components\TextInput::make('price')
-                            ->required()
                             ->numeric()
-                            ->prefix('€'),
+                            ->prefix('€')
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'numeric',
+                                'min:0.01',
+                                'max:999999.99',
+                                'regex:/^\d+(\.\d{1,2})?$/', // Allow decimal with up to 2 places
+                            ])
+                            ->validationMessages([
+                                'required' => 'Please enter the service price.',
+                                'numeric' => 'Price must be a valid number.',
+                                'min' => 'Price must be at least €0.01.',
+                                'max' => 'Price cannot exceed €999,999.99.',
+                                'regex' => 'Price format is invalid. Use format like: 45.50',
+                            ])
+                            ->placeholder('0.00')
+                            ->helperText('Enter price in euros (e.g., 45.50)'),
+                            
                         Forms\Components\TextInput::make('time')
                             ->label('Duration (minutes)')
-                            ->required()
                             ->numeric()
                             ->suffix('min')
-                            ->helperText('Duration of the service in minutes')
-                            ->minValue(1)
-                            ->maxValue(480), // 8 hours max
+                            ->live(onBlur: true)
+                            ->rules([
+                                // 'required',
+                                'integer',
+                                'min:1',
+                                'max:480', // 8 hours max
+                            ])
+                            ->validationMessages([
+                                'required' => 'Please enter the service duration.',
+                                'integer' => 'Duration must be a whole number.',
+                                'min' => 'Duration must be at least 1 minute.',
+                                'max' => 'Duration cannot exceed 480 minutes (8 hours).',
+                            ])
+                            ->helperText('standaard op 30 minuten')
+                            ->placeholder('30'),
+                            
                         Forms\Components\Toggle::make('active')
                             ->label('Active Status')
                             ->default(true)
                             ->onColor('success')
-                            ->offColor('danger'),
+                            ->offColor('danger')
+                            ->rules([
+                                'boolean',
+                            ])
+                            ->validationMessages([
+                                'boolean' => 'Active status must be true or false.',
+                            ])
+                            ->helperText('Toggle to activate or deactivate this service'),
                     ])
                     ->columns(3),
                 
@@ -71,11 +146,22 @@ class ServiceResource extends Resource
                             ->relationship('categories', 'name')
                             ->multiple()
                             ->preload()
-                            //+ button
+                            ->live()
+                            ->helperText('💡 Tip: Adding categories helps customers find your services more easily')
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
-                                    ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'max:255',
+                                        'min:2',
+                                    ])
+                                    ->validationMessages([
+                                        'required' => 'Please enter the category name.',
+                                        'min' => 'Category name must be at least 2 characters long.',
+                                        'max' => 'Category name cannot exceed 255 characters.',
+                                    ]),
                                 Forms\Components\Toggle::make('active')
                                     ->default(true),
                             ]),
@@ -88,9 +174,11 @@ class ServiceResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Naam')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('hairlength')
+                    ->label('Haarlengte')
                     ->sortable()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'short' => 'Short',
@@ -99,9 +187,9 @@ class ServiceResource extends Resource
                         default => $state,
                     }),
                 Tables\Columns\TextColumn::make('categories.name')
+                    ->label('Categorieën')
                     ->badge()
                     ->color('success')
-                    ->label('Categories')
                     ->bulleted(false)
                     ->searchable()
                     ->action(function ($record, $column, $state) {
@@ -116,25 +204,16 @@ class ServiceResource extends Resource
                     })
                     ->tooltip('Click to filter by this category'),
                 Tables\Columns\TextColumn::make('description')
+                    ->label('Beschrijving')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
+                    ->label('Prijs')
                     ->money('EUR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time')
-                    ->label('Duration')
+                    ->label('Duur')
                     ->suffix(' min')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('active')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('categories')
@@ -148,12 +227,12 @@ class ServiceResource extends Resource
                         'medium' => 'Medium',
                         'long' => 'Long'
                     ])
-                    ->label('Hair Length'),
+                    ->label('Haarlengte'),
                 Tables\Filters\TernaryFilter::make('active')
-                    ->label('Active Status')
-                    ->placeholder('All services')  // Changed from 'All Services' to be clear this is the default view
-                    ->trueLabel('Active Services')
-                    ->falseLabel('Inactive Services')
+                    ->label('Actief')
+                    ->placeholder('Alle diensten')  // Changed from 'All Services' to be clear this is the default view
+                    ->trueLabel('Actieve diensten')
+                    ->falseLabel('Inactieve diensten')
                     ->boolean()
                     ->default(true)  // This makes "Active Services" the default selection
                     ->queries(
@@ -162,6 +241,7 @@ class ServiceResource extends Resource
                         blank: fn (Builder $query): Builder => $query  // Show all when "All" is selected
                     ),
                 Tables\Filters\Filter::make('price_range')
+                    ->label('Prijs')
                     ->form([
                         Forms\Components\Grid::make()
                             ->schema([

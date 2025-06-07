@@ -18,6 +18,7 @@ use Filament\Tables\Columns\SelectColumn;
 use Carbon\Carbon;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Notifications\Notification;
 
 class BookingResource extends Resource
 {
@@ -34,25 +35,66 @@ class BookingResource extends Resource
                 Forms\Components\Section::make('Booking Information')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
+                            ->label('Naam')
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'string',
+                                'max:255',
+                                'min:2',
+                                'regex:/^[a-zA-ZÀ-ÿ\s\'-]+$/u', // Allow letters, accents, spaces, apostrophes, hyphens
+                            ])
+                            ->validationMessages([
+                                'required' => 'Voer uw volledige naam in.',
+                                'min' => 'Naam moet minstens 2 tekens lang zijn.',
+                                'max' => 'Naam mag niet langer zijn dan 255 tekens.',
+                                'regex' => 'Naam mag alleen letters, spaties, apostrofen en koppeltekens bevatten.',
+                            ]),
                             
                         Forms\Components\TextInput::make('email')
-                            ->email()
-                            ->required()
-                            ->maxLength(255),
+                            ->label('E-mailadres')
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'email:rfc,dns',
+                                'max:255',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Voer uw e-mailadres in.',
+                                'email' => 'Voer een geldig e-mailadres in (bijvoorbeeld john@voorbeeld.nl).',
+                                'max' => 'E-mailadres mag niet langer zijn dan 255 tekens.',
+                            ]),
                             
                         Forms\Components\TextInput::make('telephone')
-                            ->tel()
-                            ->required()
-                            ->maxLength(255),
+                            ->label('Telefoonnummer')
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->rules([
+                                'required',
+                                'regex:/^[\+]?[0-9\s\-\(\)]{10,20}$/', // Phone number format
+                                'min:10',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Voer uw telefoonnummer in.',
+                                'min' => 'Telefoonnummer moet minstens 10 cijfers lang zijn.',
+                                'regex' => 'Voer een geldig telefoonnummer in. Je kunt formats gebruiken zoals: +1 234 567 8900, (123) 456-7890, of 0123456789',
+                            ])
+                            ->placeholder('bijvoorbeeld: +1 234 567 8900 of 0123456789'),
                             
                         Forms\Components\DateTimePicker::make('date')
-                            ->required()
+                            ->label('Boekingsdatum en -tijd')
                             ->minDate(now())
-                            ->rule('after_or_equal:now')
+                            ->rules([
+                                'required',
+                                'date',
+                                'after_or_equal:now',
+                            ])
                             ->validationMessages([
-                                'after_or_equal' => 'The booking date must be in the future.',
+                                'required' => 'Selecteer een boekingsdatum en -tijd.',
+                                'date' => 'Selecteer een geldige datum en tijd.',
+                                'after_or_equal' => 'Boekingsdatum moet in de toekomst zijn. Selecteer een datum en tijd na nu.',
                             ])
                             ->live(onBlur: true)
                             ->afterStateUpdated(function ($state, $set, $get) {
@@ -75,15 +117,18 @@ class BookingResource extends Resource
                             }),
                             
                         Forms\Components\DateTimePicker::make('end_time')
-                            ->label('End Time')
-                            ->helperText('Leave empty to auto-calculate based on selected services')
+                            ->label('Eindtijd')
+                            ->helperText('Laat leeg om de eindtijd automatisch te berekenen op basis van geselecteerde diensten')
                             ->minDate(now())
                             ->rules([
+                                'nullable',
+                                'date',
                                 'after_or_equal:now',
                                 'after_or_equal:date',
                             ])
                             ->validationMessages([
-                                'after_or_equal' => 'The end time must be in the future and after the start time.',
+                                'date' => 'Selecteer een geldige einddatum en -tijd.',
+                                'after_or_equal' => 'Eindtijd moet in de toekomst zijn en na de boekingsstarttijd.',
                             ])
                             ->live(onBlur: true)
                             ->afterStateUpdated(function ($state, $set, $get) {
@@ -122,7 +167,15 @@ class BookingResource extends Resource
                                 'male' => 'Male',
                                 'female' => 'Female',
                             ])
-                            ->required(),
+                            ->live()
+                            ->rules([
+                                'required',
+                                'in:male,female',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Selecteer uw geslacht.',
+                                'in' => 'Selecteer een geldig geslacht (Man of Vrouw).',
+                            ]),
                             
                         Forms\Components\Select::make('status')
                             ->options([
@@ -131,11 +184,31 @@ class BookingResource extends Resource
                                 'cancelled' => 'Cancelled',
                                 'completed' => 'Completed',
                             ])
-                            ->required(),
+                            ->live()
+                            ->rules([
+                                'required',
+                                'in:pending,confirmed,cancelled,completed',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Selecteer een boekingsstatus.',
+                                'in' => 'Selecteer een geldige status.',
+                            ]),
                             
                         Forms\Components\Textarea::make('remarks')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
+                            ->maxLength(500)
+                            ->columnSpanFull()
+                            ->live(onBlur: true)
+                            ->rows(3)
+                            ->rules([
+                                'nullable',
+                                'string',
+                                'max:500',
+                            ])
+                            ->validationMessages([
+                                'max' => 'Opmerkingen mogen niet langer zijn dan 500 tekens. De huidige lengte is te lang.',
+                                'string' => 'Opmerkingen moeten alleen tekst bevatten.',
+                            ])
+                            ->helperText('Optioneel: Voeg eventuele speciale opmerkingen of vereisten voor deze boeking toe.'),
                     ])
                     ->columns(2),
                     
@@ -144,8 +217,18 @@ class BookingResource extends Resource
                         Forms\Components\CheckboxList::make('services')
                             ->relationship('services', 'name')
                             ->columns(2)
-                            ->searchable()
                             ->live()
+                            ->rules([
+                                'required',
+                                'array',
+                                'min:1',
+                            ])
+                            ->validationMessages([
+                                'required' => 'Selecteer minstens één dienst voor deze boeking.',
+                                'min' => 'Minstens één dienst moet worden geselecteerd.',
+                                'array' => 'Services selectie is ongeldig.',
+                            ])
+                            ->helperText('Selecteer één of meer diensten voor deze boeking. De eindtijd wordt automatisch berekend.')
                             ->afterStateUpdated(function ($state, $set, $get) {
                                 // Only auto-calculate if the flag is set (user hasn't manually set end time)
                                 if ($get('auto_calculate_end_time') && $get('date')) {
@@ -171,8 +254,21 @@ class BookingResource extends Resource
                     ->schema([
                         Forms\Components\CheckboxList::make('products')
                             ->relationship('products', 'name')
-                            ->columns(2)
-                            ->searchable(),
+                            ->label('Producten')
+                            ->searchable()
+                            ->searchPrompt('Zoek producten...')
+                            ->searchingMessage('Zoeken...')
+                            ->noSearchResultsMessage('Geen producten gevonden.')
+                            ->columns(3)
+                            ->live()
+                            ->rules([
+                                'nullable',
+                                'array',
+                            ])
+                            ->validationMessages([
+                                'array' => 'Product selectie is ongeldig.',
+                            ])
+                            ->helperText('Optioneel: Selecteer eventuele producten die tijdens deze boeking worden gebruikt.'),
                     ]),
             ]);
     }
@@ -182,19 +278,22 @@ class BookingResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label('Naam')
                     ->searchable()
                     ->sortable(),
                 
                 TextColumn::make('date')
-                    ->dateTime('d-m-Y H:i')
+                    ->label('Starttijd')
+                    ->dateTime('H:i')
                     ->sortable(),
                 
                 TextColumn::make('end_time')
-                    ->label('End Time')
-                    ->dateTime('d-m-Y H:i')
+                    ->label('Eindtijd')
+                    ->dateTime('H:i')
                     ->sortable(),
                 
                 TextColumn::make('gender')
+                    ->label('man/vrouw')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'male' => 'blue',
@@ -202,8 +301,27 @@ class BookingResource extends Resource
                     }),
                 
                 TextColumn::make('services.name')
+                    ->label('Diensten')
                     ->listWithLineBreaks()
-                    ->searchable(),
+                    ->searchable()
+                    ->limit(10)
+                    ->tooltip(function (TextColumn $column): ?string {
+                        $record = $column->getRecord();
+                        $services = $record->services;
+                        
+                        if ($services->isEmpty()) {
+                            return null;
+                        }
+                        
+                        $serviceNames = $services->pluck('name')->join(', ');
+                        
+                        if (strlen($serviceNames) <= 10) {
+                            return null;
+                        }
+                        
+                        return $serviceNames;
+                    }),
+                    
                 
                 IconColumn::make('products_count')
                     ->label('Has Products')
@@ -214,25 +332,46 @@ class BookingResource extends Resource
                 
                 Tables\Columns\SelectColumn::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
-                        'cancelled' => 'Cancelled',
-                        'completed' => 'Completed',
+                        'pending' => 'In behandeling',
+                        'confirmed' => 'Bevestigd',
+                        'cancelled' => 'Geannuleerd',
+                        'completed' => 'Voltooid',
                     ])
                     ->searchable()
                     ->sortable()
                     ->width('100px'),
                 
                 TextColumn::make('remarks')
-                    ->limit(20)
+                    ->label('Opmerkingen')
+                    ->limit(7)
                     ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
                         
-                        if (strlen($state) <= 20) {
+                        if (strlen($state) <= 7) {
                             return null;
                         }
                         
                         return $state;
+                    }),
+                    // add a column for the total price of the booking
+                TextColumn::make('total_price')
+                    ->label('Totaalprijs')
+                    ->money('EUR')
+                    ->sortable()
+                    ->getStateUsing(function (Booking $record): float {
+                        $servicesTotal = $record->services()->sum('price') ?? 0;
+                        $productsTotal = $record->products()->sum('price') ?? 0;
+                        return $servicesTotal + $productsTotal;
+                    })
+                    ->tooltip(function (Booking $record): string {
+                        $servicesTotal = $record->services()->sum('price') ?? 0;
+                        $productsTotal = $record->products()->sum('price') ?? 0;
+                        $servicesCount = $record->services()->count();
+                        $productsCount = $record->products()->count();
+                        
+                        return "Diensten ({$servicesCount}): €" . number_format($servicesTotal, 2) . 
+                               "\nProducten ({$productsCount}): €" . number_format($productsTotal, 2) .
+                               "\nTotaal: €" . number_format($servicesTotal + $productsTotal, 2);
                     }),
             ])
             ->filters([
@@ -263,16 +402,16 @@ class BookingResource extends Resource
                 Tables\Filters\SelectFilter::make('gender')
                     ->label('Gender')
                     ->options([
-                        'male' => 'Male',
-                        'female' => 'Female',
+                        'male' => 'Man',
+                        'female' => 'Vrouw',
                     ])
-                    ->placeholder('All Genders'),
+                    ->placeholder('Alle geslachten'),
                 
                 Tables\Filters\TernaryFilter::make('exclude_cancelled')
-                    ->label('Show Cancelled Bookings')
-                    ->placeholder('All bookings')
-                    ->trueLabel('Include cancelled')
-                    ->falseLabel('Exclude cancelled')
+                    ->label('Toon geannuleerde boekingen')
+                    ->placeholder('Alle boekingen')
+                    ->trueLabel('Inclusief geannuleerde')
+                    ->falseLabel('Exclureer geannuleerde')
                     ->default(false) // Default to excluding cancelled bookings
                     ->queries(
                         true: fn (Builder $query): Builder => $query, // Show all including cancelled
