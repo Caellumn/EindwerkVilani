@@ -37,8 +37,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Removed default widgets (AccountWidget and FilamentInfoWidget)
+                // Your custom StatsOverview widget will be auto-discovered
             ])
             ->middleware([
                 EncryptCookies::class,
