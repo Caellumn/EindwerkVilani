@@ -8,6 +8,10 @@ use Filament\Resources\Pages\CreateRecord;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
+use App\Notifications\BookingCreated;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\SimpleNotifiable;
+use Illuminate\Support\Facades\Notification as LaravelNotification;
 
 class CreateBooking extends CreateRecord
 {
@@ -141,6 +145,19 @@ class CreateBooking extends CreateRecord
 
     protected function afterCreate(): void
     {
+        // Load relationships for email templates
+        $this->record->load(['services', 'products']);
+        
+        // Create a simple notifiable object with the email
+        $notifiable = new SimpleNotifiable($this->record->email);
+        
+        // Send appropriate email based on status
+        if ($this->record->status === 'pending') {
+            LaravelNotification::send($notifiable, new BookingCreated($this->record));
+        } elseif ($this->record->status === 'confirmed') {
+            LaravelNotification::send($notifiable, new BookingConfirmed($this->record));
+        }
+        
         // Reset the overlap flag for next time
         $this->overlapConfirmed = false;
         $this->overlappingBookings = '';

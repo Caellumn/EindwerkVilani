@@ -2,18 +2,18 @@
 
 namespace App\Notifications;
 
-use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Models\Booking;
 use Carbon\Carbon;
 
-class BookingCreated extends Notification
+class BookingCancelled extends Notification
 {
     use Queueable;
 
-    protected $booking;
+    public $booking;
 
     /**
      * Create a new notification instance.
@@ -39,15 +39,15 @@ class BookingCreated extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Uw afspraak bij Kapsalon Vilani is ontvangen')
-            ->view('emails.mailPending', [
-                'booking' => $this->booking,
+            ->subject('Uw afspraak bij Kapsalon Vilani is geannuleerd')
+            ->view('emails.booking-cancelled', [
                 'customerName' => $this->booking->name,
                 'bookingDate' => Carbon::parse($this->booking->date)->format('l j F Y'),
                 'bookingTime' => Carbon::parse($this->booking->date)->format('H:i'),
                 'endTime' => Carbon::parse($this->booking->end_time)->format('H:i'),
                 'services' => $this->booking->services,
                 'products' => $this->booking->products,
+                'booking' => $this->booking
             ]);
     }
 
@@ -59,9 +59,7 @@ class BookingCreated extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'booking_id' => $this->booking->id,
-            'customer_name' => $this->booking->name,
-            'booking_date' => $this->booking->date,
+            //
         ];
     }
 }

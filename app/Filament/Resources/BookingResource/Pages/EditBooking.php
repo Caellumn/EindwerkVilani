@@ -8,6 +8,10 @@ use Filament\Resources\Pages\EditRecord;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\BookingCancelled;
+use App\Notifications\SimpleNotifiable;
+use Illuminate\Support\Facades\Notification as LaravelNotification;
 
 class EditBooking extends EditRecord
 {
@@ -15,6 +19,15 @@ class EditBooking extends EditRecord
     
     protected bool $overlapConfirmed = false;
     protected bool $shouldAutoCalculateEndTime = true;
+    protected ?string $originalStatus = null;
+
+    public function mount(int | string $record): void
+    {
+        parent::mount($record);
+        
+        // Store the original status for change detection
+        $this->originalStatus = $this->record->status;
+    }
 
     protected function getHeaderActions(): array
     {
@@ -145,6 +158,30 @@ class EditBooking extends EditRecord
         // Refresh record to ensure relationships are loaded
         $this->record->refresh();
         
+        // Check if status changed to 'confirmed'
+        if ($this->originalStatus !== 'confirmed' && $this->record->status === 'confirmed') {
+            // Load relationships for the email
+            $this->record->load(['services', 'products']);
+            
+            // Create a simple notifiable object with the email
+            $notifiable = new SimpleNotifiable($this->record->email);
+            
+            // Send confirmation email
+            LaravelNotification::send($notifiable, new BookingConfirmed($this->record));
+        }
+        
+        // Check if status changed to 'cancelled'
+        if ($this->originalStatus !== 'cancelled' && $this->record->status === 'cancelled') {
+            // Load relationships for the email
+            $this->record->load(['services', 'products']);
+            
+            // Create a simple notifiable object with the email
+            $notifiable = new SimpleNotifiable($this->record->email);
+            
+            // Send cancellation email
+            LaravelNotification::send($notifiable, new BookingCancelled($this->record));
+        }
+        
         // Recalculate end time if auto-calculation was enabled
         if ($this->shouldAutoCalculateEndTime) {
             $this->record->recalculateEndTime();
@@ -153,6 +190,9 @@ class EditBooking extends EditRecord
         // Reset the overlap flag for next time
         $this->overlapConfirmed = false;
         $this->overlappingBookings = '';
+        
+        // Update original status for potential future changes
+        $this->originalStatus = $this->record->status;
     }
 
     protected function mutateFormDataBeforeSave(array $data): array

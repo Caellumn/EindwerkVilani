@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Carbon\Carbon;
 
-class BookingCreated extends Notification
+class BookingConfirmed extends Notification
 {
     use Queueable;
 
@@ -39,8 +39,8 @@ class BookingCreated extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Uw afspraak bij Kapsalon Vilani is ontvangen')
-            ->view('emails.mailPending', [
+            ->subject('Uw afspraak bij Kapsalon Vilani is bevestigd')
+            ->view('emails.mailConfirmed', [
                 'booking' => $this->booking,
                 'customerName' => $this->booking->name,
                 'bookingDate' => Carbon::parse($this->booking->date)->format('l j F Y'),

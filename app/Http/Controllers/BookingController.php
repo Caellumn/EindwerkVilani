@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use OpenApi\Annotations as OA;
+use App\Notifications\BookingCreated;
+use App\Notifications\SimpleNotifiable;
+use Illuminate\Support\Facades\Notification;
 
 class BookingController extends Controller
 {
@@ -355,6 +358,15 @@ class BookingController extends Controller
 
             //create the booking
             $booking = Booking::create($validated);
+            
+            // Send BookingCreated notification if status is pending
+            if ($booking->status === 'pending') {
+                // Create a simple notifiable object with the email
+                $notifiable = new SimpleNotifiable($booking->email);
+                
+                Notification::send($notifiable, new BookingCreated($booking));
+            }
+
             return response()->json($booking, 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -855,6 +867,14 @@ class BookingController extends Controller
                 'services:id,name,time',
                 'products:id,name,price'
             ]);
+
+            // Send BookingCreated notification if status is pending
+            if ($booking->status === 'pending') {
+                // Create a simple notifiable object with the email
+                $notifiable = new SimpleNotifiable($booking->email);
+                
+                Notification::send($notifiable, new BookingCreated($booking));
+            }
 
             // Format the response
             $response = [

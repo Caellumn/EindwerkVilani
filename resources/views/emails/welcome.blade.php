@@ -9,7 +9,7 @@
           <div style="background-image:url('https://example.com/flowers-border.png'); background-repeat:repeat-x; padding:20px; text-align:center;">
             <div style="max-width:150px; margin:0 auto; overflow:hidden;">
               <img
-                src="https://scontent-bru2-1.xx.fbcdn.net/v/t39.30808-6/435165463_921438306651405_7748658979090768872_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=f2R2klNmsMIQ7kNvwFlzEId&_nc_oc=AdlmhKSai6fHbwZUblh0q5McHDHAqvalwsIzIgtTz2U-y_H8li0837TOWaRYXDQQORsI7g7KNktaiEIlDctQiSC7&_nc_zt=23&_nc_ht=scontent-bru2-1.xx&_nc_gid=I0gAVdJiw_ZAlZUPvX3IXQ&oh=00_AfI4M41qiLRNpXJAugMWmuuT6zQ-8IyxShpVgV1tDAhw5A&oe=68319BD6"
+                src="https://res.cloudinary.com/dqq0m8xb3/image/upload/v1748090686/products/tokg8mxxfp6fs1waav4b.jpg"
                 alt="Kapsalon Vilani - Logo"
                 style="width:100%; height:auto; display:block;"
               >

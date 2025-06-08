@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Http\Request;
 use App\Http\Requests\BaseRequest;
+use App\Models\Booking;
+use App\Observers\BookingObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register the BookingObserver
+        Booking::observe(BookingObserver::class);
+        
         if (app()->environment('production')) {
             // 1) Force all URLs to be generated with your APP_URL
             URL::useOrigin(config('app.url'));
