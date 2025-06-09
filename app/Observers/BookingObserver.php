@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Booking;
+use App\Notifications\BookingCreated;
 use App\Notifications\BookingConfirmed;
 use App\Notifications\BookingCancelled;
 use App\Notifications\SimpleNotifiable;
@@ -15,7 +16,10 @@ class BookingObserver
      */
     public function created(Booking $booking): void
     {
-        //
+        // Email sending for API bookings with services/products is handled
+        // by calling $booking->sendCreationEmail() after relationships are attached.
+        // This observer only handles simple bookings without services/products
+        // or bookings created through Filament (which attach relationships before creation).
     }
 
     /**

@@ -148,15 +148,8 @@ class CreateBooking extends CreateRecord
         // Load relationships for email templates
         $this->record->load(['services', 'products']);
         
-        // Create a simple notifiable object with the email
-        $notifiable = new SimpleNotifiable($this->record->email);
-        
-        // Send appropriate email based on status
-        if ($this->record->status === 'pending') {
-            LaravelNotification::send($notifiable, new BookingCreated($this->record));
-        } elseif ($this->record->status === 'confirmed') {
-            LaravelNotification::send($notifiable, new BookingConfirmed($this->record));
-        }
+        // Send creation email with proper relationships loaded
+        $this->record->sendCreationEmail();
         
         // Reset the overlap flag for next time
         $this->overlapConfirmed = false;

@@ -158,29 +158,8 @@ class EditBooking extends EditRecord
         // Refresh record to ensure relationships are loaded
         $this->record->refresh();
         
-        // Check if status changed to 'confirmed'
-        if ($this->originalStatus !== 'confirmed' && $this->record->status === 'confirmed') {
-            // Load relationships for the email
-            $this->record->load(['services', 'products']);
-            
-            // Create a simple notifiable object with the email
-            $notifiable = new SimpleNotifiable($this->record->email);
-            
-            // Send confirmation email
-            LaravelNotification::send($notifiable, new BookingConfirmed($this->record));
-        }
-        
-        // Check if status changed to 'cancelled'
-        if ($this->originalStatus !== 'cancelled' && $this->record->status === 'cancelled') {
-            // Load relationships for the email
-            $this->record->load(['services', 'products']);
-            
-            // Create a simple notifiable object with the email
-            $notifiable = new SimpleNotifiable($this->record->email);
-            
-            // Send cancellation email
-            LaravelNotification::send($notifiable, new BookingCancelled($this->record));
-        }
+        // Email sending is now handled by BookingObserver
+        // No need to send emails here to avoid duplication
         
         // Recalculate end time if auto-calculation was enabled
         if ($this->shouldAutoCalculateEndTime) {

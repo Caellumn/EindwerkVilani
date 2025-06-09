@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Carbon\Carbon;
+use App\Notifications\BookingCreated;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\SimpleNotifiable;
+use Illuminate\Support\Facades\Notification as LaravelNotification;
 
 class Booking extends Model
 {
@@ -28,6 +32,28 @@ class Booking extends Model
     {
         return $this->belongsToMany(Product::class)
                     ->using(BookingProduct::class);
+    }
+
+    /**
+     * Send the appropriate creation email based on booking status
+     * This method should be called AFTER all relationships are set up
+     * 
+     * @return void
+     */
+    public function sendCreationEmail()
+    {
+        // Load relationships to ensure they're available for email templates
+        $this->load(['services', 'products']);
+        
+        // Create a simple notifiable object with the email
+        $notifiable = new SimpleNotifiable($this->email);
+        
+        // Send appropriate email based on status
+        if ($this->status === 'pending') {
+            LaravelNotification::send($notifiable, new BookingCreated($this));
+        } elseif ($this->status === 'confirmed') {
+            LaravelNotification::send($notifiable, new BookingConfirmed($this));
+        }
     }
 
     /**

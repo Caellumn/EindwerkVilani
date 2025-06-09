@@ -359,13 +359,8 @@ class BookingController extends Controller
             //create the booking
             $booking = Booking::create($validated);
             
-            // Send BookingCreated notification if status is pending
-            if ($booking->status === 'pending') {
-                // Create a simple notifiable object with the email
-                $notifiable = new SimpleNotifiable($booking->email);
-                
-                Notification::send($notifiable, new BookingCreated($booking));
-            }
+            // Send creation email (services/products will be empty for simple bookings)
+            $booking->sendCreationEmail();
 
             return response()->json($booking, 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -868,13 +863,8 @@ class BookingController extends Controller
                 'products:id,name,price'
             ]);
 
-            // Send BookingCreated notification if status is pending
-            if ($booking->status === 'pending') {
-                // Create a simple notifiable object with the email
-                $notifiable = new SimpleNotifiable($booking->email);
-                
-                Notification::send($notifiable, new BookingCreated($booking));
-            }
+            // Send creation email with proper services/products loaded
+            $booking->sendCreationEmail();
 
             // Format the response
             $response = [
