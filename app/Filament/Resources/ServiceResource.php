@@ -205,6 +205,16 @@ class ServiceResource extends Resource
                     ->tooltip('Click to filter by this category'),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Beschrijving')
+                    ->limit(10)
+                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
+                        $state = $column->getState();
+                        
+                        if (strlen($state) <= 10) {
+                            return null;
+                        }
+                        
+                        return $state;
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Prijs')

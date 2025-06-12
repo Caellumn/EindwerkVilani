@@ -199,7 +199,20 @@ class ProductResource extends Resource
                     })
                     ->tooltip('Klik om deze categorie te filteren'),
                 Tables\Columns\ImageColumn::make('image')->label('Afbeelding'),
-                Tables\Columns\TextColumn::make('description')->sortable()->searchable()->limit(20)->suffix('...')->label('Beschrijving'),
+                Tables\Columns\TextColumn::make('description')
+                    ->sortable()
+                    ->searchable()
+                    ->limit(20)
+                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
+                        $state = $column->getState();
+                        
+                        if (strlen($state) <= 20) {
+                            return null;
+                        }
+                        
+                        return $state;
+                    })
+                    ->label('Beschrijving'),
 
             ])
             ->filters([ 
