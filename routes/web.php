@@ -265,6 +265,7 @@ Route::get('/docs-simple', function () {
         html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
         *, *:before, *:after { box-sizing: inherit; }
         body { margin:0; background: #fafafa; }
+
     </style>
 </head>
 <body>
@@ -284,7 +285,14 @@ Route::get('/docs-simple', function () {
                 plugins: [
                     SwaggerUIBundle.plugins.DownloadUrl
                 ],
-                layout: 'StandaloneLayout'
+                layout: 'StandaloneLayout',
+                requestInterceptor: function(request) {
+                    // Redirect API calls to mock endpoints for safe testing
+                    if (request.url.includes('/api/')) {
+                        request.url = request.url.replace('/api/', '/api/mock/');
+                    }
+                    return request;
+                }
             });
         };
     </script>
@@ -295,3 +303,5 @@ Route::get('/docs-simple', function () {
 Route::get('/docs-simple/json', function () {
     return response()->file(storage_path('api-docs/api-docs.json'));
 });
+
+

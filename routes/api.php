@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingHasServicesController;
 use App\Http\Controllers\BookingHasProductsController;
+use App\Http\Controllers\OpeningTimeController;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Http\Middleware\AdminOnly;
@@ -68,6 +69,9 @@ Route::apiResource('/users', UserController::class)->only(['store']);
 // Booking Routes
 Route::apiResource('/bookings', BookingController::class)->only(['index', 'store']);
 Route::post('/bookings/full-store', [BookingController::class, 'fullStore']);
+
+// Opening Times Routes (Public - no authentication required)
+Route::get('/opening-times', [OpeningTimeController::class, 'getOpeningTimes']);
 
 // // Booking Has Products Routes
 // Route::get('/bookings/{bookingId}/products', [BookingHasProductsController::class, 'index']);
@@ -315,4 +319,234 @@ Route::post('/upload-to-cloudinary', function (\Illuminate\Http\Request $request
         
         return response()->json($errorResponse, 500);
     }
+});
+
+// =============================================================================
+// MOCK API ROUTES FOR DOCUMENTATION TESTING (DUMMY DATA ONLY)
+// =============================================================================
+// These routes provide fake data for "Try it out" functionality in API docs
+// They don't touch the real database and are safe for public testing
+// Located in API routes to avoid CSRF protection
+
+Route::prefix('mock')->group(function () {
+    
+    // Mock Opening Times
+    Route::get('/opening-times', function () {
+        return response()->json([
+            [
+                "id" => 1,
+                "day" => "monday",
+                "status" => "open",
+                "open" => "09:00:00",
+                "close" => "18:00:00"
+            ],
+            [
+                "id" => 2,
+                "day" => "tuesday",
+                "status" => "gesloten",
+                "open" => null,
+                "close" => null
+            ],
+            [
+                "id" => 3,
+                "day" => "wednesday",
+                "status" => "gesloten",
+                "open" => null,
+                "close" => null
+            ],
+            [
+                "id" => 4,
+                "day" => "thursday",
+                "status" => "open",
+                "open" => "09:00:00",
+                "close" => "18:00:00"
+            ],
+            [
+                "id" => 5,
+                "day" => "friday",
+                "status" => "open",
+                "open" => "09:00:00",
+                "close" => "18:00:00"
+            ],
+            [
+                "id" => 6,
+                "day" => "saturday",
+                "status" => "open",
+                "open" => "09:00:00",
+                "close" => "16:00:00"
+            ],
+            [
+                "id" => 7,
+                "day" => "sunday",
+                "status" => "open",
+                "open" => "09:00:00",
+                "close" => "13:00:00"
+            ]
+        ]);
+    });
+
+    // Mock Bookings
+    Route::get('/bookings', function () {
+        return response()->json([
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174000",
+                "date" => "2024-12-25 10:00:00",
+                "end_time" => "2024-12-25 11:00:00",
+                "name" => "John Doe",
+                "email" => "john@example.com",
+                "telephone" => "+31612345678",
+                "gender" => "male",
+                "remarks" => "First time customer",
+                "status" => "confirmed"
+            ],
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174001",
+                "date" => "2024-12-26 14:00:00",
+                "end_time" => "2024-12-26 15:30:00",
+                "name" => "Jane Smith",
+                "email" => "jane@example.com",
+                "telephone" => "+31687654321",
+                "gender" => "female",
+                "remarks" => "Regular customer",
+                "status" => "pending"
+            ]
+        ]);
+    });
+
+    // Mock Services
+    Route::get('/services', function () {
+        return response()->json([
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174000",
+                "name" => "Haircut",
+                "description" => "Professional haircut service",
+                "hairlength" => "short",
+                "price" => 25.00,
+                "time" => 30,
+                "active" => 1
+            ],
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174001",
+                "name" => "Hair Wash & Blow Dry",
+                "description" => "Complete hair washing and styling",
+                "hairlength" => "medium",
+                "price" => 35.00,
+                "time" => 45,
+                "active" => 1
+            ]
+        ]);
+    });
+
+    // Mock Products
+    Route::get('/products', function () {
+        return response()->json([
+            "data" => [
+                [
+                    "id" => "123e4567-e89b-12d3-a456-426614174000",
+                    "name" => "Professional Shampoo",
+                    "description" => "High-quality hair shampoo for all hair types",
+                    "price" => 19.99,
+                    "stock" => 50,
+                    "image" => "https://via.placeholder.com/300x300/4A90E2/FFFFFF?text=Shampoo",
+                    "active" => 1
+                ],
+                [
+                    "id" => "123e4567-e89b-12d3-a456-426614174001",
+                    "name" => "Hair Conditioner",
+                    "description" => "Moisturizing conditioner for smooth hair",
+                    "price" => 22.50,
+                    "stock" => 35,
+                    "image" => "https://via.placeholder.com/300x300/50C878/FFFFFF?text=Conditioner",
+                    "active" => 1
+                ]
+            ],
+            "links" => [
+                "first" => "http://example.com/api/mock/products?page=1",
+                "last" => "http://example.com/api/mock/products?page=1",
+                "prev" => null,
+                "next" => null
+            ],
+            "meta" => [
+                "current_page" => 1,
+                "from" => 1,
+                "last_page" => 1,
+                "per_page" => 10,
+                "to" => 2,
+                "total" => 2
+            ]
+        ]);
+    });
+
+    // Mock Users
+    Route::get('/users', function () {
+        return response()->json([
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174000",
+                "name" => "Demo User",
+                "email" => "demo@example.com",
+                "gender" => "male",
+                "telephone" => "+31612345678",
+                "role" => "user"
+            ],
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174001",
+                "name" => "Admin User",
+                "email" => "admin@example.com",
+                "gender" => "female",
+                "telephone" => "+31687654321",
+                "role" => "admin"
+            ]
+        ]);
+    });
+
+    // Mock Categories
+    Route::get('/categories', function () {
+        return response()->json([
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174000",
+                "name" => "Hair Care",
+                "active" => 1
+            ],
+            [
+                "id" => "123e4567-e89b-12d3-a456-426614174001",
+                "name" => "Styling Products",
+                "active" => 1
+            ]
+        ]);
+    });
+
+    // Mock POST responses (simulate successful creation)
+    Route::post('/bookings', function () {
+        return response()->json([
+            "id" => "123e4567-e89b-12d3-a456-426614174999",
+            "date" => "2024-12-27 10:00:00",
+            "end_time" => "2024-12-27 11:00:00",
+            "name" => "Test User",
+            "email" => "test@example.com",
+            "telephone" => "+31600000000",
+            "gender" => "male",
+            "remarks" => "Demo booking created successfully",
+            "status" => "pending"
+        ], 201);
+    });
+
+    Route::post('/users', function () {
+        return response()->json([
+            "id" => "123e4567-e89b-12d3-a456-426614174999",
+            "name" => "New Demo User",
+            "email" => "newdemo@example.com",
+            "gender" => "female",
+            "telephone" => "+31600000000",
+            "role" => "user",
+            "profile_photo_url" => "https://ui-avatars.com/api/?name=New+Demo+User&color=7F9CF5&background=EBF4FF"
+        ], 201);
+    });
+
+    // Catch-all for other methods to return success messages
+    Route::any('{any}', function () {
+        return response()->json([
+            "message" => "Mock API endpoint - This is dummy data for testing purposes only",
+            "note" => "No real data was modified. This is safe for testing the API documentation."
+        ]);
+    })->where('any', '.*');
 });

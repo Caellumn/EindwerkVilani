@@ -2021,6 +2021,142 @@
                 }
             }
         },
+        "/api/opening-times": {
+            "get": {
+                "tags": [
+                    "Opening Times"
+                ],
+                "summary": "Get salon opening hours",
+                "description": "Retrieve the complete weekly schedule of the hair salon including opening and closing times for each day, or closed status for days when the salon is not open.",
+                "operationId": "getOpeningTimes",
+                "responses": {
+                    "200": {
+                        "description": "Opening times retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "description": "Unique identifier for the opening time record",
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "day": {
+                                                "description": "Day of the week",
+                                                "type": "string",
+                                                "enum": [
+                                                    "monday",
+                                                    "tuesday",
+                                                    "wednesday",
+                                                    "thursday",
+                                                    "friday",
+                                                    "saturday",
+                                                    "sunday"
+                                                ],
+                                                "example": "monday"
+                                            },
+                                            "status": {
+                                                "description": "Whether the salon is open or closed on this day",
+                                                "type": "string",
+                                                "enum": [
+                                                    "open",
+                                                    "gesloten"
+                                                ],
+                                                "example": "open"
+                                            },
+                                            "open": {
+                                                "description": "Opening time in HH:MM:SS format (null when closed)",
+                                                "type": "string",
+                                                "format": "time",
+                                                "example": "09:00:00",
+                                                "nullable": true
+                                            },
+                                            "close": {
+                                                "description": "Closing time in HH:MM:SS format (null when closed)",
+                                                "type": "string",
+                                                "format": "time",
+                                                "example": "18:00:00",
+                                                "nullable": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "day": "monday",
+                                        "status": "open",
+                                        "open": "09:00:00",
+                                        "close": "18:00:00"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "day": "tuesday",
+                                        "status": "gesloten",
+                                        "open": null,
+                                        "close": null
+                                    },
+                                    {
+                                        "id": 3,
+                                        "day": "wednesday",
+                                        "status": "gesloten",
+                                        "open": null,
+                                        "close": null
+                                    },
+                                    {
+                                        "id": 4,
+                                        "day": "thursday",
+                                        "status": "open",
+                                        "open": "09:00:00",
+                                        "close": "18:00:00"
+                                    },
+                                    {
+                                        "id": 5,
+                                        "day": "friday",
+                                        "status": "open",
+                                        "open": "09:00:00",
+                                        "close": "18:00:00"
+                                    },
+                                    {
+                                        "id": 6,
+                                        "day": "saturday",
+                                        "status": "open",
+                                        "open": "09:00:00",
+                                        "close": "16:00:00"
+                                    },
+                                    {
+                                        "id": 7,
+                                        "day": "sunday",
+                                        "status": "open",
+                                        "open": "09:00:00",
+                                        "close": "13:00:00"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while retrieving opening times"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/products/{productId}/categories": {
             "get": {
                 "tags": [
@@ -2325,7 +2461,7 @@
                     "Products"
                 ],
                 "summary": "Get all active products",
-                "description": "Returns a paginated list of active products (max 20 per page)",
+                "description": "Returns a paginated list of active products (max 10 per page)",
                 "operationId": "getProducts",
                 "parameters": [
                     {
@@ -2417,7 +2553,7 @@
                                                 },
                                                 "from": {
                                                     "type": "integer",
-                                                    "example": 21
+                                                    "example": 11
                                                 },
                                                 "last_page": {
                                                     "type": "integer",
@@ -2425,15 +2561,15 @@
                                                 },
                                                 "per_page": {
                                                     "type": "integer",
-                                                    "example": 20
+                                                    "example": 10
                                                 },
                                                 "to": {
                                                     "type": "integer",
-                                                    "example": 40
+                                                    "example": 20
                                                 },
                                                 "total": {
                                                     "type": "integer",
-                                                    "example": 200
+                                                    "example": 100
                                                 }
                                             },
                                             "type": "object"
@@ -4174,6 +4310,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Opening Times",
+            "description": "Hair salon opening hours and schedule management"
+        },
         {
             "name": "Bookings",
             "description": "Bookings"

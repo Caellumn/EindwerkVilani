@@ -17,6 +17,7 @@ class VerifyCsrfToken
     
     protected $except = [
         'email/verify/*',
+        'mock/api/*',  // Exclude mock API routes for Swagger documentation testing
     ];
     /**
      * Handle an incoming request.
