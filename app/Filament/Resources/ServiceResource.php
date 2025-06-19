@@ -109,6 +109,7 @@ class ServiceResource extends Resource
                             ->label('Duration (minutes)')
                             ->numeric()
                             ->suffix('min')
+                            ->default(30)
                             ->live(onBlur: true)
                             ->rules([
                                 // 'required',
